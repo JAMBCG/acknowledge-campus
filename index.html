@@ -25,7 +25,8 @@ html,body{height:100%}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
 .app{display:grid;grid-template-columns:minmax(0,1fr) 360px;height:100%}
 .stage{position:relative;min-width:0;overflow:hidden;background:var(--sky)}
-#scene{display:block;width:100%;height:100%;cursor:grab}
+#scene{display:block;width:100%;height:100%;cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none}
+.stage{touch-action:none}
 #scene:active{cursor:grabbing}
 .labels{position:absolute;inset:0;pointer-events:none}
 .tag{position:absolute;transform:translate(-50%,-100%);font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
@@ -102,7 +103,7 @@ h1{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;margi
         </g>
       </svg>
     </div>
-    <div class="hint">Drag to rotate · scroll or pinch to zoom · right-drag to pan · click a building</div>
+    <div class="hint">Drag (or 1 finger) to rotate · scroll or pinch to zoom · right-drag (or 2 fingers) to pan · tap a building</div>
   </div>
 
   <aside class="panel">
@@ -137,7 +138,7 @@ renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(42,1,1,2000);
 const controls=new THREE.OrbitControls(camera,canvas);
-controls.enableDamping=true; controls.maxPolarAngle=Math.PI*0.47; controls.minDistance=15; controls.maxDistance=260;
+controls.enableDamping=true; controls.maxPolarAngle=Math.PI*0.47; controls.minDistance=4; controls.maxDistance=260;
 
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
 let night=false;
@@ -746,7 +747,7 @@ function setNight(on){night=on; nb.setAttribute('aria-pressed',on);
   glass.emissive.setHex(on?0xc9944a:0x1b2a33); bollM.emissive.setHex(on?0xffe9b8:0x000000);
   plazaLights.forEach(l=>l.intensity=on?1.8:0); panels.forEach(p=>p.material.emissive.setHex(on?p.userData.glow:0));
   wallMat.emissive.setHex(on?0xffe2a8:0x000000); signMat.emissive.setHex(on?0xffe2a8:0x000000); beam.visible=on; applyTheme()}
-document.getElementById('v-plaza').onclick=()=>{Object.values(vb).forEach(b=>b.setAttribute('aria-pressed','false'));flyTo(new THREE.Vector3(-6,6,-34),new THREE.Vector3(12,2.5,-27))};
+document.getElementById('v-plaza').onclick=()=>{Object.values(vb).forEach(b=>b.setAttribute('aria-pressed','false'));flyTo(new THREE.Vector3(5.5,2.2,-27),new THREE.Vector3(15.3,1.1,-27))};
 const sb=document.getElementById('v-spin'); sb.onclick=()=>{const on=sb.getAttribute('aria-pressed')!=='true';sb.setAttribute('aria-pressed',on);controls.autoRotate=on;controls.autoRotateSpeed=0.6};
 
 camera.position.copy(views.aerial[0]); controls.target.copy(views.aerial[1]);

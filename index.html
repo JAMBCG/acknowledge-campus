@@ -180,6 +180,7 @@ flat(18,12,0x5d5c58,-14,-26);                     // parking lot
 for(let i=0;i<8;i++){flat(0.15,4,0xe8e4d4,-21.5+i*2.2,-23.5,0.04);flat(0.15,4,0xe8e4d4,-21.5+i*2.2,-28.5,0.04)}
 
 const pick=[], items={};
+let seed2=11; const rnd2=()=>{seed2=(seed2*16807)%2147483647;return seed2/2147483647};
 function building(id,o){
   const g=new THREE.Group(); g.position.set(o.x,0,o.z); g.rotation.y=o.rot||0;
   const body=new THREE.Mesh(new THREE.BoxGeometry(o.w,o.h,o.d),M(o.color)); body.position.y=o.h/2; body.castShadow=body.receiveShadow=true; g.add(body);
@@ -248,8 +249,11 @@ const DATA={
    text:"Raised vegetable beds and a small greenhouse worked by veteran volunteers. Produce goes to the Comfort Zone kitchen, events and families staying at the Lodge.",
    bullets:["12 waist-high raised beds (wheelchair-friendly)","Greenhouse for starts and herbs","Tool shed and rain barrels","Composting area"]},
  stops:{name:"Harvest Stops",k:"Trail",size:"6 stops on the loop",
-   text:"Every stop along the trail has a bench, a basket stand and fruit trees or berry bushes. Walk the loop, pick what's ripe, take a basket home.",
-   bullets:["Stop 1 Citrus: Satsuma, Meyer lemon","Stop 2 Figs","Stop 3 Blackberries & blueberries","Stop 4 Peaches & pears (low-chill)","Stop 5 Muscadine grape arbor","Stop 6 Pomegranate, persimmon, loquat"]},
+   text:"Every stop along the trail has a bench, a basket stand and fruit trees or berry bushes chosen for Houston's climate and low upkeep (no regular spraying). Something is ripe almost every season. Weekly pickup of fallen fruit by the Garden Detail keeps wasps and flies away.",
+   bullets:["Stop 1 Citrus: Satsuma (Owari), Meyer lemon, kumquat · Nov–Jan","Stop 2 Figs: Celeste, Texas Everbearing · Jun–Aug","Stop 3 Thornless blackberries: Arapaho, Natchez · May–Jun","Stop 4 Fuyu persimmon, jujube, Kieffer / Orient pear · Aug–Nov","Stop 5 Muscadine grape arbor (shade + fruit) · Aug–Sep","Stop 6 Pomegranate and loquat · Mar–Apr and Sep–Oct","Plants set back a few feet from the trail edge; drip irrigation, no standing water"]},
+ bees:{name:"Apiary & Pollinator Meadow",k:"Grow",size:"~6 hives + native wildflowers under the panels",
+   text:"Beehives in the far back corner of the solar field, behind a hedge so bees fly up and over people. Native wildflowers under the panels feed the bees, cut mowing, and boost fruit on the Harvest Stops.",
+   bullets:["Campus honey for the Harvest Market","Managed with a local beekeepers' association; gentle, requeened colonies","Veteran beekeeping program (e.g., Heroes to Hives partnership)","Dedicated bee water source","Far from the trail, dog park, Lodge and Family Center","Sting-allergy kits in first-aid stations"]},
 pantry:{name:"Donation Pantry",k:"Support",size:"~60 × 35 ft",
    text:"Pantry and donation warehouse sharing the market's lot, so produce, food and donated goods move between them easily. Veterans pick up through a private side door.",
    bullets:["Food pantry stocked from the gardens and donations","Clothing and household goods for veterans moving into new housing","Donor drop-off at the market lot","Private pickup entrance"]},
@@ -269,7 +273,7 @@ pantry:{name:"Donation Pantry",k:"Support",size:"~60 × 35 ft",
    text:"Low-maintenance play built for adults and kids: shaded porch swings on the trail and a see-saw on the Lodge lawn.",
    bullets:["Covered porch swings sized for adults","Room for a wheelchair-accessible glider","See-saw on the family lawn","Shade so seats don't get hot"]},
  solar:{name:"Solar Field & Power",k:"Energy",size:"~2 acre back field + carports + rooftops",
-   text:"The extra acres at the back hold a ground solar field with battery storage. Together with the carports and rooftop panels, this is sized to aim at offsetting most or all of the campus's power. A solar designer would confirm the real number.",
+   text:"The extra acres at the back hold a ground solar field with battery storage, planted underneath with a native wildflower meadow for the bees. Together with the carports and rooftop panels, this is sized to aim at offsetting most or all of the campus's power. A solar designer would confirm the real number.",
    bullets:["Back-field array, out of the main view","Battery yard keeps the Comfort Zone running in outages","Carports shade the lot and make power","Campus can serve as a cooling / charging center after storms"]},
  market:{name:"Harvest Market",k:"Road frontage",size:"~120 × 60 ft open market + shop",
    text:"Open-air market at the front of the property, just inside the gate with its own small lot, so the public can stop in from the main road without driving into the campus.",
@@ -488,7 +492,7 @@ const plazaLights=[], panels=[]; let wallMat, beam;
   [-23.5,-28.5].forEach(z=>{const p=panel(scene,17,4,-14,2.6,z,-0.12); cp.push(p);
     for(let i=0;i<4;i++){const post=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,2.6,6),M(0x8a8a86));post.position.set(-21.5+i*5,1.3,z);scene.add(post)}});
   const g=new THREE.Group(); g.position.set(-1,0,47.5);
-  const rows=[]; for(let r=0;r<8;r++){rows.push(panel(g,68,1.1,0,0.8,-5+r*1.4,-0.4))}
+  const rows=[]; for(let r=0;r<8;r++){rows.push(panel(g,62,1.1,3,0.8,-5+r*1.4,-0.4))}
   const bat=new THREE.Mesh(new THREE.BoxGeometry(2,1.3,4),M(0xd8dcd8)); bat.position.set(36,0.65,-2); bat.castShadow=true; g.add(bat);
   const bat2=bat.clone(); bat2.position.z=3; g.add(bat2);
   const f=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(76,0.6,12.5)),new THREE.LineBasicMaterial({color:0x3b3b33})); f.position.set(1.5,0.3,-0.6); g.add(f);
@@ -603,6 +607,25 @@ flat(3,12.5,0x6b6a66,38.6,-24.5,0.032);
   const can=new THREE.Mesh(new THREE.BoxGeometry(6,0.15,2.2),roofMat); can.position.set(0.5,2.6,0); g.add(can);
   [[-2.4,-1],[-2.4,1],[3.4,-1],[3.4,1]].forEach(q=>{const c=new THREE.Mesh(new THREE.BoxGeometry(0.15,2.6,0.15),M(0x6c6c66));c.position.set(q[0],1.3,q[1]);g.add(c)});
   scene.add(g); reg('gate',g,[booth,arm,can],3.4);
+})();
+
+// Pollinator meadow under the panels + apiary in the far back corner
+(function(){
+  flat(74,12.2,0x9bb466,1.5,47,0.03);
+  const cols=[0xf2c230,0x8e5bb5,0xe8eef0,0xd9472b,0x4e7fd9], geo=new THREE.IcosahedronGeometry(0.16,0);
+  const mats=cols.map(c=>M(c));
+  for(let i=0;i<220;i++){const f=new THREE.Mesh(geo,mats[i%5]); f.position.set(-37+rnd2()*76,0.12,41.5+rnd2()*11.5); scene.add(f)}
+  const g=new THREE.Group(); g.position.set(-34.5,0,50);
+  const hedge=new THREE.Mesh(new THREE.BoxGeometry(6,1.4,0.9),M(0x3e5a2c)); hedge.position.set(0,0.7,-3.6); hedge.castShadow=true; g.add(hedge);
+  const hedge2=hedge.clone(); hedge2.rotation.y=Math.PI/2; hedge2.scale.x=1.1; hedge2.position.set(3.2,0.7,-0.4); g.add(hedge2);
+  const meshes=[hedge];
+  for(let i=0;i<6;i++){const x=-2.2+(i%3)*1.6, z=i<3?-1.6:0.4;
+    const st=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.25,0.6),M(0x5a3d26)); st.position.set(x,0.12,z); g.add(st);
+    const b1=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.35,0.5),M(i%2?0xf3efe2:0xf2d06b)); b1.position.set(x,0.42,z); b1.castShadow=true; g.add(b1);
+    const b2=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.3,0.5),M(0xf3efe2)); b2.position.set(x,0.75,z); g.add(b2);
+    const lid=new THREE.Mesh(new THREE.BoxGeometry(0.68,0.06,0.58),M(0x8a8a86)); lid.position.set(x,0.93,z); g.add(lid); meshes.push(b1)}
+  const trough=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.3,0.5),M(0x6d7f8c)); trough.position.set(1.6,0.15,1.8); g.add(trough);
+  scene.add(g); reg('bees',g,meshes,2.2);
 })();
 
 // trees (seeded)

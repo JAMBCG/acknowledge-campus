@@ -37,6 +37,11 @@ body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px
   background:var(--panel);color:var(--fg);padding:6px 10px;border-radius:3px;cursor:pointer}
 .hud button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.compass{position:absolute;right:max(12px,env(safe-area-inset-right,0px));bottom:12px;pointer-events:none}
+.compass .c-ring{fill:rgba(20,24,14,.72);stroke:#e3b85a;stroke-width:1.5}
+.compass .c-north{fill:#e3b85a}.compass .c-south{fill:#cfc8b4;opacity:.7}
+.compass .c-lbl{fill:#f1eedf;font:700 10px var(--display);text-anchor:middle;dominant-baseline:middle}
+.compass .c-n{fill:#ffe3a3}
 .hint{position:absolute;bottom:10px;left:max(12px,env(safe-area-inset-left,0px));font-size:12px;color:#f1eedf;background:rgba(20,24,14,.6);padding:3px 8px;border-radius:2px}
 .panel{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding-block:22px;
   padding-left:20px;padding-right:max(20px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
@@ -56,6 +61,8 @@ h1{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;margi
 .list button{display:flex;justify-content:space-between;gap:8px;text-align:left;border:0;border-bottom:1px solid var(--line);border-radius:0;
   font-family:var(--body);font-weight:600;text-transform:none;letter-spacing:0;font-size:14px;padding:9px 10px;background:transparent}
 .list button:last-child{border-bottom:0}
+.list button .t{display:flex;flex-direction:column;gap:1px;min-width:0}
+.list button .s{font-weight:400;font-size:12px;color:var(--muted)}
 .list button .k{font-family:var(--mono);font-size:11px;color:var(--muted);font-weight:500}
 .list button.on{background:color-mix(in srgb,var(--accent) 16%,transparent)}
 .note{font-size:12px;color:var(--muted);margin:0}
@@ -80,6 +87,19 @@ h1{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;margi
       <button id="v-night" aria-pressed="false">Night</button>
       <button id="v-plaza" aria-pressed="false">Plaza</button>
     </div>
+    <div class="compass" id="compass" aria-label="Compass">
+      <svg viewBox="0 0 80 80" width="72" height="72" aria-hidden="true">
+        <circle cx="40" cy="40" r="37" class="c-ring"/>
+        <g id="rose">
+          <path d="M40 9 L46 40 L40 36 L34 40 Z" class="c-north"/>
+          <path d="M40 71 L46 40 L40 44 L34 40 Z" class="c-south"/>
+          <text x="40" y="8.5" class="c-lbl c-n">N</text>
+          <text x="74" y="43" class="c-lbl">E</text>
+          <text x="40" y="78" class="c-lbl">S</text>
+          <text x="6" y="43" class="c-lbl">W</text>
+        </g>
+      </svg>
+    </div>
     <div class="hint">Drag to rotate · scroll or pinch to zoom · right-drag to pan · click a building</div>
   </div>
 
@@ -99,7 +119,7 @@ h1{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;margi
       <div class="eyebrow" style="margin-bottom:6px">Site elements</div>
       <div class="list" id="list"></div>
     </div>
-    <p class="note">Footprints are planning placeholders (1 grid square = 50 ft). The site is 20 acres; the back strip holds the solar field and the front strip holds the market. Swap in real sizes once you have a survey and an architect's program.</p>
+    <p class="note">Footprints are planning placeholders (1 grid square = 50 ft). Water and sewer assumed from city or district service. The site is 20 acres; the back strip holds the solar field and the front strip holds the market. Swap in real sizes once you have a survey and an architect's program.</p>
   </aside>
 </div>
 
@@ -183,22 +203,22 @@ function reg(id,group,meshes,labelH){
 
 const DATA={
  comfort:{name:"The Comfort Zone",k:"Front door · Morale",size:"~110 × 90 ft, center of the Chevron",
-   text:"The first building you see from the gate and the first door you walk through. It sits at the point of the Chevron, with indoor hallways into Acknowledge Hall (west wing) and the Family Center (east wing).",
+   text:"The first building you see from the gate and the first door you walk through. It sits at the point of the Chevron, with indoor hallways into Vann Hall (east wing) and the Family Center (west wing).",
    bullets:["Welcome desk at the front porch","Covered, dog-friendly front porch (service and well-trained dogs welcome)","Lounge, coffee bar, game room, quiet room","Kitchen cooking from the Victory Garden","Battle Buddy dispatch board"]},
- hall:{name:"Acknowledge Hall",k:"Admin · Benefits",size:"~125 × 55 ft west wing",
-   text:"West wing of the Chevron. Intake, benefits help and staff offices, reached through an indoor hallway from the Comfort Zone lounge.",
-   bullets:["Intake and case files","VA benefits & claims help (VSO office)","Staff offices and board room","Wall of service: all branches, all eras"]},
+ hall:{name:"Vann Hall",k:"Admin · Legal · Finance",size:"~125 × 55 ft, east wing of the Chevron",
+   text:"Named in honor of John Vann. East wing of the Chevron, reached through an indoor hallway from the Comfort Zone lounge. A veteran can see benefits help and legal help in one visit.",
+   bullets:["Intake and VA benefits & claims help (VSO office)","Veterans Legal Office: VA appeals, discharge upgrades, wills, family law","Nonprofit finance office (back-office side, away from public traffic)","Executive offices and board room","Wall of service: all branches, all eras"]},
  clinic:{name:"Health & Wellness Center",k:"Health",size:"~90 × 60 ft",
    text:"Partner clinic space for screenings, telehealth and fitness so health care isn't another drive across Houston.",
    bullets:["Telehealth suites (VA partner)","Screening & wellness rooms","Gym and rehab space","Wheelchair accessible throughout"]},
  training:{name:"Freeman Training & Counseling Center",k:"Transition",size:"~100 × 60 ft",
    text:"Classrooms and private counseling rooms: jobs, certifications, finances, and peer-led groups.",
-   bullets:["Career & certification classes","Private counseling rooms","Peer support group rooms","Computer lab"]},
+   bullets:["Career & certification classes","Private counseling rooms","Peer support group rooms","Veteran financial counseling: budgeting, debt, credit, VA home loans","Computer lab"]},
  pavilion:{name:"JD Event Center",k:"Events",size:"~120 × 80 ft, enclosed and air-conditioned",
    text:"Indoor event hall for ceremonies, retirement send-offs, banquets and community days, usable year-round in any weather. Sits near parking so rentals don't pass through the campus.",
-   bullets:["Seats ~300 for ceremonies, ~200 for banquets","Catering kitchen","Stage and sound for color guard and speakers","Rentable for weddings, reunions and company events (revenue)","Could be built as a storm shelter for the community"]},
+   bullets:["Seats ~300 for ceremonies, ~200 for banquets","Catering kitchen","Stage and sound for color guard and speakers","Rentable for weddings, reunions and company events (revenue)","Screened patio and lawn for outdoor events, with fans and mosquito misting","Could be built as a storm shelter for the community"]},
  shelter:{name:"Pondside Pavilion",k:"Outdoors",size:"~90 × 50 ft, open sides",
-   text:"Open-air pavilion on the pond's edge between the Freeman Health & Wellness Center and the water. Shade for cookouts, fishing days and family picnics.",
+   text:"Open-air pavilion on the pond's edge between the Health & Wellness Center and the water. Shade for cookouts, fishing days and family picnics.",
    bullets:["Picnic tables and a grill line","Home base for fishing days","Ceiling fans and lights for summer evenings","Short walk from the Lodge and Family Center"]},
  motor:{name:"CW Rally Point",k:"Battle Buddy HQ",size:"5 vehicle bays + 2-story volunteer building",
    text:"Home of the Battle Buddy fleet. Volunteers check in here, grab keys, and roll out past the flags. Wheelchair-ready Sprinter vans plus a ~15-passenger accessible bus.",
@@ -230,11 +250,20 @@ const DATA={
  stops:{name:"Harvest Stops",k:"Trail",size:"6 stops on the loop",
    text:"Every stop along the trail has a bench, a basket stand and fruit trees or berry bushes. Walk the loop, pick what's ripe, take a basket home.",
    bullets:["Stop 1 Citrus: Satsuma, Meyer lemon","Stop 2 Figs","Stop 3 Blackberries & blueberries","Stop 4 Peaches & pears (low-chill)","Stop 5 Muscadine grape arbor","Stop 6 Pomegranate, persimmon, loquat"]},
-circle:{name:"Welcome Circle",k:"Arrival",size:"~100 ft loop",
+pantry:{name:"Donation Pantry",k:"Support",size:"~60 × 35 ft",
+   text:"Pantry and donation warehouse sharing the market's lot, so produce, food and donated goods move between them easily. Veterans pick up through a private side door.",
+   bullets:["Food pantry stocked from the gardens and donations","Clothing and household goods for veterans moving into new housing","Donor drop-off at the market lot","Private pickup entrance"]},
+ maint:{name:"Maintenance Yard & Shop",k:"Operations",size:"Office ~40 × 30 ft + warehouse ~70 × 50 ft",
+   text:"Office up front, warehouse and shop behind, with a fenced yard. Reached by the service lane past CW Rally Point, so mowers and trucks never cross the main campus.",
+   bullets:["Front office for the facilities manager","Warehouse and repair shop","Fenced yard for mowers, tractor and trailers","Fuel and material storage"]},
+ gate:{name:"Gatehouse",k:"Security",size:"~12 × 12 ft booth + gate arm",
+   text:"Inner gate on the entrance drive, just past the market lot. The market stays open to the public while the gate controls after-hours access to the campus, Lodge and RV lot.",
+   bullets:["Staffed booth with camera coverage","Gate arm with keypad / card access for Lodge and RV guests","Welcome point for first-time visitors"]},
+ circle:{name:"Welcome Circle",k:"Arrival",size:"~100 ft loop",
    text:"Drop-off loop at the end of the entrance drive. Vans and families unload right at the Comfort Zone's covered porch, out of the rain.",
-   bullets:["Covered unloading at the porch","Wheelchair-level curb","Center planter with the welcome stone"]},
- family:{name:"Family Center",k:"Families · Kids",size:"~125 × 55 ft east wing",
-   text:"East wing of the Chevron. Indoor, climate-controlled play and kids' rooms so families can come any day, any weather, while parents are in appointments or groups.",
+   bullets:["Covered unloading at the porch","Wheelchair-level curb","Center planter with the welcome stone","Doubles as an outdoor gathering spot for arrival ceremonies"]},
+ family:{name:"Family Center",k:"Families · Kids",size:"~125 × 55 ft, west wing of the Chevron",
+   text:"West wing of the Chevron. Indoor, climate-controlled play and kids' rooms so families can come any day, any weather, while parents are in appointments or groups.",
    bullets:["Indoor play room (soft play, climbing)","Supervised kids' room while parents are on campus","Nursing / quiet room","Teen and homework room","Opens to the Lodge lawn"]},
  play:{name:"Swing & Play Stops",k:"Trail · All ages",size:"2 swing pergolas + see-saw",
    text:"Low-maintenance play built for adults and kids: shaded porch swings on the trail and a see-saw on the Lodge lawn.",
@@ -244,7 +273,7 @@ circle:{name:"Welcome Circle",k:"Arrival",size:"~100 ft loop",
    bullets:["Back-field array, out of the main view","Battery yard keeps the Comfort Zone running in outages","Carports shade the lot and make power","Campus can serve as a cooling / charging center after storms"]},
  market:{name:"Harvest Market",k:"Road frontage",size:"~120 × 60 ft open market + shop",
    text:"Open-air market at the front of the property, just inside the gate with its own small lot, so the public can stop in from the main road without driving into the campus.",
-   bullets:["Free produce table for veterans and families","Produce sales to the public to fund the campus","Veteran-made goods: woodwork, flag cases, honey, art","Coffee / snack window","Saturday farmers' market and holiday markets"]},
+   bullets:["Free produce table for veterans and families","Donation Pantry right behind the market","Produce sales to the public to fund the campus","Veteran-made goods: woodwork, flag cases, honey, art","Coffee / snack window","Saturday farmers' market and holiday markets"]},
 };
 Object.keys(DATA).forEach(k=>items[k]=Object.assign({id:k},DATA[k]));
 
@@ -355,7 +384,7 @@ const plazaLights=[], panels=[]; let wallMat, beam;
   [[-20,-24],[-17.8,-28.8],[-11.2,-24]].forEach(p=>{const c=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.2,3.2),M(0x4d6680));c.position.set(p[0],0.6,p[1]);c.castShadow=true;scene.add(c)});
   // vans outside motor pool
   for(let i=0;i<3;i++){const v=new THREE.Mesh(new THREE.BoxGeometry(1.8,2,4.4),vanM);v.position.set(24.5+i*2.7,1,-21.5);v.castShadow=true;scene.add(v)}
-  const bus=new THREE.Mesh(new THREE.BoxGeometry(2.4,2.6,7),busM); bus.position.set(34,1.3,-19.5); bus.castShadow=true; scene.add(bus);
+  const bus=new THREE.Mesh(new THREE.BoxGeometry(2.4,2.6,7),busM); bus.position.set(35.6,1.3,-26); bus.castShadow=true; scene.add(bus);
 })();
 
 // ---- Acknowledge Lodge (family suites ground floor, singles above)
@@ -532,11 +561,55 @@ const swings=[];
   scene.add(g); reg('market',g,[slab,roof,shop],4.5);
 })();
 
+// service lane extension to the maintenance yard
+flat(9,3,0x6b6a66,35.5,-17.5,0.032);
+flat(3,12.5,0x6b6a66,38.6,-24.5,0.032);
+
+// Maintenance Yard & Shop: office up front, warehouse behind
+(function(){
+  const g=new THREE.Group(); g.position.set(36,0,-35.5);
+  const yard=new THREE.Mesh(new THREE.BoxGeometry(8,0.05,10),M(0x9a9585)); yard.position.y=0.03; yard.receiveShadow=true; g.add(yard);
+  const office=new THREE.Mesh(new THREE.BoxGeometry(4,2.2,3),M(0xb9ad91)); office.position.set(-0.5,1.1,3.2); office.castShadow=true; g.add(office);
+  const oroof=new THREE.Mesh(new THREE.BoxGeometry(4.4,0.25,3.4),roofMat); oroof.position.set(-0.5,2.32,3.2); g.add(oroof);
+  const ow=new THREE.Mesh(new THREE.BoxGeometry(3,0.6,0.08),glass); ow.position.set(-0.5,1.3,4.72); g.add(ow);
+  const wh=new THREE.Mesh(new THREE.BoxGeometry(7,3,5),M(0x7f8579)); wh.position.set(0,1.5,-2); wh.castShadow=true; g.add(wh);
+  const whr=new THREE.Mesh(new THREE.BoxGeometry(7.4,0.3,5.4),roofMat); whr.position.set(0,3.15,-2); g.add(whr);
+  panel(g,6.4,4,0,3.5,-2,-0.12);
+  const door=new THREE.Mesh(new THREE.BoxGeometry(2.2,2,0.08),M(0x55594f)); door.position.set(2,1,0.52); g.add(door);
+  const f=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(8,0.6,10)),new THREE.LineBasicMaterial({color:0x3b3b33})); f.position.y=0.3; g.add(f);
+  const mw=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.8,1.8),M(0xc23b22)); mw.position.set(2.8,0.4,2.6); g.add(mw);
+  scene.add(g); reg('maint',g,[office,wh],4.6);
+})();
+
+// Donation Pantry behind the market
+(function(){
+  const g=new THREE.Group(); g.position.set(24.5,0,-41.5);
+  const body=new THREE.Mesh(new THREE.BoxGeometry(6,2.4,3.5),M(0xa38a64)); body.position.y=1.2; body.castShadow=true; g.add(body);
+  const roof=new THREE.Mesh(new THREE.BoxGeometry(6.4,0.3,3.9),roofMat); roof.position.y=2.55; g.add(roof);
+  const dock=new THREE.Mesh(new THREE.BoxGeometry(2,1.6,0.08),M(0x55594f)); dock.position.set(-1.5,0.8,-1.79); g.add(dock);
+  const side=new THREE.Mesh(new THREE.BoxGeometry(0.08,1.4,0.9),M(0x6e4a2e)); side.position.set(3.04,0.7,0.6); g.add(side);
+  panel(g,5.4,2.6,0,2.85,0,-0.12);
+  scene.add(g); reg('pantry',g,[body],3.6);
+})();
+
+// Gatehouse + gate arm on the entrance drive, past the market lot
+(function(){
+  const g=new THREE.Group(); g.position.set(0,0,-43);
+  const booth=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.6,1.2),M(0xb9ad91)); booth.position.set(3.2,0.8,0); booth.castShadow=true; g.add(booth);
+  const br=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.2,1.6),roofMat); br.position.set(3.2,1.7,0); g.add(br);
+  const bw=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.6,0.9),glass); bw.position.set(2.58,1.05,0); g.add(bw);
+  const post=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.9,0.3),M(0x3a3f2e)); post.position.set(2.3,0.45,0); g.add(post);
+  const arm=new THREE.Mesh(new THREE.BoxGeometry(4.4,0.1,0.1),M(0xd9472b)); arm.position.set(0.1,0.85,0); g.add(arm);
+  const can=new THREE.Mesh(new THREE.BoxGeometry(6,0.15,2.2),roofMat); can.position.set(0.5,2.6,0); g.add(can);
+  [[-2.4,-1],[-2.4,1],[3.4,-1],[3.4,1]].forEach(q=>{const c=new THREE.Mesh(new THREE.BoxGeometry(0.15,2.6,0.15),M(0x6c6c66));c.position.set(q[0],1.3,q[1]);g.add(c)});
+  scene.add(g); reg('gate',g,[booth,arm,can],3.4);
+})();
+
 // trees (seeded)
 let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
 const trunkM=M(0x5b4632), leafA=M(0x4f6b34), leafB=M(0x3e5a2c);
 function clear(x,z){
-  const zones=[[0,13,11],[-11,8,6],[11,8,6],[24,8,6],[20.5,15,6],[18,-8,7],[-18,-10,9],[10,-27,6],[19.5,-24.5,5],[23,25,12],[-14,-26,11],[29,-24,9],[0,-30,4],[0,3,6],[-9,26,10],[-9,19,3],[6,24,7],[-21,18,7],[-24,-36,5],[-33,-33,9],[-26,-27,4]];
+  const zones=[[36,-35.5,7],[24.5,-41.5,4.5],[3,-43,3],[38.6,-24.5,3],[35.6,-26,3],[0,13,11],[-11,8,6],[11,8,6],[24,8,6],[20.5,15,6],[18,-8,7],[-18,-10,9],[10,-27,6],[19.5,-24.5,5],[23,25,12],[-14,-26,11],[29,-24,9],[0,-30,4],[0,3,6],[-9,26,10],[-9,19,3],[6,24,7],[-21,18,7],[-24,-36,5],[-33,-33,9],[-26,-27,4]];
   const rr=Math.hypot(x,z); if(Math.abs(rr-35)<2||Math.abs(rr-37.2)<2.4)return false;
   if(Math.abs(x)<12 && z<9)return false;          // view corridor: gate -> Chevron stays open
   if(z>40.5)return false;                          // solar field
@@ -558,7 +631,7 @@ Object.values(items).forEach(it=>{const d=document.createElement('div');d.classN
 
 // list + detail
 const list=document.getElementById('list'), detail=document.getElementById('detail');
-Object.values(items).forEach(it=>{const b=document.createElement('button');b.innerHTML=`<span>${it.name}</span><span class="k">${it.k}</span>`;b.onclick=()=>select(it.id,true);list.appendChild(b);it.btn=b});
+Object.values(items).forEach(it=>{const b=document.createElement('button');b.innerHTML=`<span class="t"><span>${it.name}</span><span class="s">${it.size}</span></span><span class="k">${it.k}</span>`;b.onclick=()=>select(it.id,true);list.appendChild(b);it.btn=b});
 
 let current=null;
 function centerOf(it){if(it.labelAt)return it.labelAt.clone(); const v=new THREE.Vector3(); it.group.getWorldPosition(v); return v}
@@ -606,12 +679,13 @@ window.addEventListener('resize',resize);
 const mq=matchMedia('(prefers-color-scheme: dark)'); mq.addEventListener&&mq.addEventListener('change',applyTheme);
 new MutationObserver(applyTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
-const v=new THREE.Vector3(); let clock=0;
+const v=new THREE.Vector3(); let clock=0; const rose=document.getElementById('rose');
 function tick(){
   requestAnimationFrame(tick); clock+=0.016;
   if(anim){anim.t=Math.min(1,anim.t+0.022);const e=1-Math.pow(1-anim.t,3);camera.position.lerpVectors(anim.p0,anim.p1,e);controls.target.lerpVectors(anim.t0,anim.t1,e);if(anim.t>=1)anim=null}
   if(!reduce){waves.forEach(f=>f.rotation.y=Math.sin(clock*2+f.userData.wave)*0.25);swings.forEach((w,i)=>{if(w.userData.plank)w.userData.plank.rotation.z=Math.sin(clock*0.9)*0.14;else w.rotation.x=Math.sin(clock*1.3+i)*0.18})}
   controls.update(); renderer.render(scene,camera);
+  {const dx=controls.target.x-camera.position.x, dz=controls.target.z-camera.position.z; rose.setAttribute('transform','rotate('+(Math.atan2(dx,dz)*180/Math.PI)+' 40 40)')}
   const w=stage.clientWidth,h=stage.clientHeight;
   Object.values(items).forEach(it=>{v.copy(centerOf(it));v.y+=it.labelH;v.project(camera);
     const vis=v.z<1&&Math.abs(v.x)<1.1&&Math.abs(v.y)<1.1; it.tag.style.display=vis?'':'none';

@@ -242,11 +242,11 @@ const DATA={
    text:"Short-stay lodging for visiting veterans and families. Family suites on the ground floor open onto private patios facing the lawn; single rooms are upstairs.",
    bullets:["Ground floor: ~8 family suites (2 rooms + kitchenette, accessible)","Floors 2–3: ~22 single rooms for individual veterans","Shared laundry, kitchen and family room","Stays for appointments, events, or a rough patch"]},
  dogs:{name:"Dog Park",k:"Outdoors",size:"~80 × 60 ft fenced",
-   text:"Fenced off-leash area on the outer edge between parking and the RV lot, away from the JD Event Center so barking stays out of ceremonies.",
+   text:"Fenced off-leash area on the outer east edge, between the Harvest Market and the RV lot, far from the JD Event Center so barking stays out of ceremonies. Handy for RV guests and shoppers with dogs.",
    bullets:["Separate large / small dog runs","Shade trees, benches, water station","Dog wash station","Room for service-dog training classes"]},
- rv:{name:"RV Lot",k:"Lodging",size:"6 pull-through pads",
-   text:"Pull-through RV pads for traveling veterans, event weekends and a volunteer camp host.",
-   bullets:["Water / 30–50 amp electric / sewer at each pad","Dump station","Camp host pad","Short gravel lane from parking"]},
+ rv:{name:"RV Lot",k:"Lodging",size:"6 pull-through pads, short stays",
+   text:"Short-stay RV pads for traveling veterans, VA appointment trips and event weekends. RVs check in at the Gatehouse, then turn onto their own RV road and circle a gravel loop to pull straight through their pad. They never pass through car parking or tight turns.",
+   bullets:["Dedicated 30 ft RV road from the entrance drive, inside the gate","Gravel loop around the pads with wide corners","Water / 30–50 amp electric / sewer at each pad","Dump station on the loop","Stay limit (e.g., up to 14–30 days); one longer-term camp host pad"]},
  garden:{name:"Victory Garden",k:"Grow",size:"~80 × 60 ft",
    text:"Raised vegetable beds and a small greenhouse worked by veteran volunteers. Produce goes to the Comfort Zone kitchen, events and families staying at the Lodge.",
    bullets:["12 waist-high raised beds (wheelchair-friendly)","Greenhouse for starts and herbs","Tool shed and rain barrels","Composting area"]},
@@ -417,7 +417,7 @@ const plazaLights=[], panels=[]; let wallMat, beam;
 
 // ---- Dog park
 (function(){
-  const g=new THREE.Group(); g.position.set(-24,0,-36);
+  const g=new THREE.Group(); g.position.set(-35.5,0,-44.6); g.rotation.y=Math.PI/2;
   const turf=new THREE.Mesh(new THREE.BoxGeometry(8,0.08,6),M(0x8faa5f)); turf.position.y=0.04; turf.receiveShadow=true; g.add(turf);
   const fm=new THREE.LineBasicMaterial({color:0x3b3b33});
   const f=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(8,0.5,6)),fm); f.position.y=0.25; g.add(f);
@@ -439,7 +439,11 @@ const plazaLights=[], panels=[]; let wallMat, beam;
     const s=new THREE.Mesh(new THREE.BoxGeometry(1.42,0.18,4.02),stripe);s.position.set(x,0.9,z);g.add(s);
     const hk=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.5,0.25),M(0x4a4a44));hk.position.set(x+1,0.25,z);g.add(hk)}
   scene.add(g); reg('rv',g,[gravel],2.4);
-  flat(3,8,0xa39c88,-26,-27,0.032); // gravel lane to parking
+  flat(37,3,0x6b6a66,-20,-38.3,0.032);   // RV road: entrance drive -> RV loop (inside the gate)
+  flat(2.5,12,0xa39c88,-39.2,-33,0.031); // RV loop, east side
+  flat(13,2.5,0xa39c88,-33,-26.8,0.031); // RV loop, north side
+  flat(2.5,12,0xa39c88,-26.8,-33,0.031); // RV loop, west side
+  const dump=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.4,0.8),M(0x55594f)); dump.position.set(-26.8,0.2,-29); scene.add(dump);
 })();
 
 // ---- Victory Garden: raised beds + greenhouse
@@ -592,7 +596,7 @@ flat(3,51,0xa39c88,38.6,9,0.031);   // gravel service track / fire lane along th
 
 // Donation Pantry behind the market
 (function(){
-  const g=new THREE.Group(); g.position.set(-19,0,-41.2);
+  const g=new THREE.Group(); g.position.set(-19,0,-41.7);
   const body=new THREE.Mesh(new THREE.BoxGeometry(6,2.4,3.5),M(0xa38a64)); body.position.y=1.2; body.castShadow=true; g.add(body);
   const roof=new THREE.Mesh(new THREE.BoxGeometry(6.4,0.3,3.9),roofMat); roof.position.y=2.55; g.add(roof);
   const dock=new THREE.Mesh(new THREE.BoxGeometry(2,1.6,0.08),M(0x55594f)); dock.position.set(-1.5,0.8,-1.79); g.add(dock);
@@ -657,13 +661,14 @@ flat(3,51,0xa39c88,38.6,9,0.031);   // gravel service track / fire lane along th
 let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
 const trunkM=M(0x5b4632), leafA=M(0x4f6b34), leafB=M(0x3e5a2c);
 function clear(x,z){
-  const zones=[[20,-41.5,5.5],[32.5,37,7],[-19,-41.2,4.5],[3,-43,3],[35.6,-26,3],[0,13,11],[-11,8,6],[11,8,6],[24,8,6],[20.5,15,6],[18,-8,7],[-18,-10,9],[10,-27,6],[19.5,-24.5,5],[23,25,12],[-14,-26,11],[29,-24,9],[0,-30,4],[0,3,6],[-9,26,10],[-9,19,3],[6,24,7],[-21,18,7],[-24,-36,5],[-33,-33,9],[-26,-27,4]];
+  const zones=[[20,-41.5,5.5],[32.5,37,7],[-19,-41.7,4.5],[3,-43,3],[35.6,-26,3],[0,13,11],[-11,8,6],[11,8,6],[24,8,6],[20.5,15,6],[18,-8,7],[-18,-10,9],[10,-27,6],[19.5,-24.5,5],[23,25,12],[-14,-26,11],[29,-24,9],[0,-30,4],[0,3,6],[-9,26,10],[-9,19,3],[6,24,7],[-21,18,7],[-35.5,-44.6,5],[-33,-33,9],[-26.8,-33,2]];
   const rr=Math.hypot(x,z); if(Math.abs(rr-35)<2||Math.abs(rr-37.2)<2.4)return false;
   if(Math.abs(x)<12 && z<9)return false;          // view corridor: gate -> Chevron stays open
   if(z>40.5)return false;
   if(x>36 && z>-19 && z<36)return false;           // service track                          // solar field
   if(z<-40 && x<-4 && x>-30)return false;          // market (east of the drive)
   if(Math.abs(z+40.5)<1.6 && x>1 && x<17)return false; // cottage driveway
+  if(Math.abs(z+38.3)<2.2 && x<-1 && x>-40)return false; // RV road
   if(Math.abs(z+17.5)<2.5 && x>0 && x<32)return false;
   return !zones.some(q=>Math.hypot(x-q[0],z-q[1])<q[2]) && Math.abs(x)<SIDE/2-1.5 && z>ZMIN+1.5 && z<ZMAX-1.5;
 }

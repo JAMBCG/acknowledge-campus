@@ -29,8 +29,10 @@ body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px
 #scene:active{cursor:grabbing}
 .labels{position:absolute;inset:0;pointer-events:none}
 .tag{position:absolute;transform:translate(-50%,-100%);font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
-  background:rgba(20,24,14,.78);color:#f1eedf;padding:2px 7px;border-radius:2px;white-space:nowrap;pointer-events:auto;cursor:pointer;border:1px solid transparent}
-.tag.on{border-color:#e3b85a;color:#ffe3a3}
+  background:transparent;color:#ffffff;padding:1px 4px;font-size:11px;white-space:nowrap;pointer-events:auto;cursor:pointer;opacity:.92;
+  text-shadow:0 0 2px rgba(10,12,6,.95),0 0 4px rgba(10,12,6,.8),0 1px 2px rgba(10,12,6,.9)}
+.tag:hover{opacity:1}
+.tag.on{color:#ffe3a3;opacity:1;font-size:12px;text-shadow:0 0 2px #000,0 0 6px rgba(0,0,0,.9)}
 .labels.off .tag{display:none}
 .hud{position:absolute;top:12px;left:max(12px,env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:6px}
 .hud button,.panel button{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);

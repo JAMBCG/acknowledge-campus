@@ -35,6 +35,14 @@ body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px
 .tag:hover{opacity:1}
 .tag.on{color:#ffe3a3;opacity:1;font-size:12px;text-shadow:0 0 2px #000,0 0 6px rgba(0,0,0,.9)}
 .labels.off .tag{display:none}
+.labels.touring .tag:not(.on){display:none}
+.tourbox{position:absolute;left:50%;transform:translateX(-50%);bottom:96px;width:min(560px,calc(100% - 32px));
+  background:rgba(20,24,14,.86);color:#f1eedf;padding:12px 14px;border-radius:4px;display:flex;flex-direction:column;gap:6px;pointer-events:auto}
+.tour-step{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#e3b85a}
+.tour-text{font-size:15px;line-height:1.4;min-height:2.8em}
+.tour-ctrl{display:flex;flex-wrap:wrap;gap:6px}
+.tour-ctrl button{font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;border:1px solid #6d7358;background:transparent;color:#f1eedf;padding:5px 9px;border-radius:3px;cursor:pointer}
+.tour-ctrl button:focus-visible{outline:2px solid #e3b85a;outline-offset:2px}
 .hud{position:absolute;top:12px;left:max(12px,env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:6px}
 .hud button,.panel button{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);
   background:var(--panel);color:var(--fg);padding:6px 10px;border-radius:3px;cursor:pointer}
@@ -89,6 +97,7 @@ h1{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;margi
       <button id="v-spin" aria-pressed="false">Slow orbit</button>
       <button id="v-night" aria-pressed="false">Night</button>
       <button id="v-plaza" aria-pressed="false">Plaza</button>
+      <button id="v-tour" aria-pressed="false">Drive &amp; walk tour</button>
     </div>
     <div class="compass" id="compass" aria-label="Compass">
       <svg viewBox="0 0 80 80" width="72" height="72" aria-hidden="true">
@@ -102,6 +111,15 @@ h1{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;margi
           <text x="6" y="43" class="c-lbl">W</text>
         </g>
       </svg>
+    </div>
+    <div class="tourbox" id="tourbox" hidden>
+      <div class="tour-step" id="tourstep">Stop 1</div>
+      <div class="tour-text" id="tourtext"></div>
+      <div class="tour-ctrl">
+        <button id="t-pause">Pause</button>
+        <button id="t-next">Next stop</button>
+        <button id="t-exit">Exit tour</button>
+      </div>
     </div>
     <div class="hint">Drag (or 1 finger) to rotate · scroll or pinch to zoom · right-drag (or 2 fingers) to pan · tap a building</div>
   </div>
@@ -748,6 +766,57 @@ function setNight(on){night=on; nb.setAttribute('aria-pressed',on);
   plazaLights.forEach(l=>l.intensity=on?1.8:0); panels.forEach(p=>p.material.emissive.setHex(on?p.userData.glow:0));
   wallMat.emissive.setHex(on?0xffe2a8:0x000000); signMat.emissive.setHex(on?0xffe2a8:0x000000); beam.visible=on; applyTheme()}
 document.getElementById('v-plaza').onclick=()=>{Object.values(vb).forEach(b=>b.setAttribute('aria-pressed','false'));flyTo(new THREE.Vector3(5.5,2.2,-27),new THREE.Vector3(15.3,1.1,-27))};
+// ---- Drive & walk tour: eye-level path from the main road through the campus
+const E=0.5, W=0.6;
+const TOUR=[
+ {p:[0,E,-64],l:[2,1.4,-48],id:'sign',m:'d',t:"Turning in from the main road. The lit Acknowledge sign greets you on the left."},
+ {p:[0,E,-47.5],l:[-14,1,-46.5],id:'market',m:'d',t:"On the right, the Harvest Market and Donation Pantry. The public can shop here without entering the campus."},
+ {p:[0,E,-44.8],l:[3,1,-43],id:'gate',m:'d',t:"The Gatehouse. Check in here; this is the 24/7 security post."},
+ {p:[1.5,E,-29],l:[15.3,1.1,-27],id:'plaza',m:'d',t:"Acknowledgment Plaza: seven flags, every branch. Read the wall."},
+ {p:[0,E,-9],l:[0,2.6,14],id:'comfort',m:'d',t:"Ahead, the Chevron opens its arms. The Comfort Zone is the first door you walk through."},
+ {p:[-2.6,E,0.4],l:[0,1.2,8],id:'circle',m:'d',t:"Pull into the Welcome Circle and unload under the covered porch."},
+ {p:[0,W,6.3],l:[0,1.4,12],id:'comfort',m:'w',t:"Out of the car and onto the dog-friendly porch. Coffee's inside."},
+ {p:[-8,W,1.2],l:[-11,1.3,8],id:'hall',m:'w',t:"The east wing: Vann Hall, for benefits help, legal help and administration."},
+ {p:[-17,W,-2],l:[-18,1.4,-10],id:'pavilion',m:'w',t:"The JD Event Center, with a screened patio for outdoor events."},
+ {p:[10,W,0.4],l:[11,1.3,8],id:'family',m:'w',t:"Back across to the west wing: the Family Center, indoor play in any weather."},
+ {p:[16,W,-0.6],l:[18,1.3,-8],id:'training',m:'w',t:"The Freeman Training & Counseling Center: careers, counseling and peer groups."},
+ {p:[19.5,W,2.4],l:[24,1.3,8],id:'clinic',m:'w',t:"The Health & Wellness Center: telehealth, screenings and a gym."},
+ {p:[16.5,W,13],l:[23,0.4,24],id:'pond',m:'w',t:"The CW Fishing Pond. Grab a pole at the dock."},
+ {p:[12.5,W,21.4],l:[6,0.5,24],id:'garden',m:'w',t:"The Victory Garden, right behind the Comfort Zone kitchen."},
+ {p:[12,W,34],l:[12,1.6,38.5],id:'shelter',m:'w',t:"Across the trail, the Pondside Pavilion for cookouts and fishing days."},
+ {p:[2.5,W,34],l:[0,1.3,37],id:'play',m:'w',t:"Swing & Play: shaded porch swings for every age."},
+ {p:[-4,W,21],l:[-9,1.7,26],id:'lodge',m:'w',t:"The Acknowledge Lodge: family suites downstairs, single rooms above."},
+ {p:[-60,70,-75],l:[0,0,0],id:null,m:'f',t:"That's Acknowledge Campus. Every branch, every era, every veteran."}
+];
+let tour=null, lastT=0;
+const tourbox=document.getElementById('tourbox'), tourstep=document.getElementById('tourstep'), tourtext=document.getElementById('tourtext');
+const tb=document.getElementById('v-tour'), tp=document.getElementById('t-pause');
+const lookV=new THREE.Vector3(), tmpA=new THREE.Vector3(), tmpB=new THREE.Vector3();
+function showStop(i){const s=TOUR[i]; tourstep.textContent='Stop '+(i+1)+' of '+TOUR.length; tourtext.textContent=s.t; if(s.id)select(s.id,false)}
+function startTour(){controls.autoRotate=false; sb.setAttribute('aria-pressed','false'); anim=null;
+  tour={i:0,u:0,wait:4,paused:false}; controls.enabled=false; camera.near=0.05; camera.updateProjectionMatrix();
+  camera.position.set(...TOUR[0].p); lookV.set(...TOUR[0].l); camera.lookAt(lookV);
+  tourbox.hidden=false; labelsEl.classList.add('touring'); tb.setAttribute('aria-pressed','true'); tp.textContent='Pause'; lastT=performance.now(); showStop(0)}
+function stopTour(fly=true){if(!tour)return; tour=null; controls.enabled=true; camera.near=1; camera.updateProjectionMatrix();
+  tourbox.hidden=true; labelsEl.classList.remove('touring'); tb.setAttribute('aria-pressed','false');
+  controls.target.copy(lookV); if(fly)flyTo(views.aerial[0].clone(),views.aerial[1].clone())}
+function stepTour(){const now=performance.now(), dt=Math.min(0.05,(now-lastT)/1000); lastT=now; if(tour.paused){camera.lookAt(lookV);return}
+  const i=tour.i;
+  if(tour.wait>0){tour.wait-=dt; camera.position.set(...TOUR[i].p); lookV.set(...TOUR[i].l); camera.lookAt(lookV);
+    if(tour.wait<=0 && i===TOUR.length-1)stopTour(); return}
+  const a=TOUR[i], b=TOUR[i+1]; tmpA.set(...a.p); tmpB.set(...b.p);
+  const dist=tmpA.distanceTo(tmpB), speed=b.m==='d'?7:b.m==='w'?2.6:30;
+  tour.u=Math.min(1,tour.u+dt*speed/Math.max(dist,0.01)); const e=tour.u<0.5?2*tour.u*tour.u:1-Math.pow(-2*tour.u+2,2)/2;
+  camera.position.lerpVectors(tmpA,tmpB,e);
+  if(b.m==='w')camera.position.y+=Math.sin(tour.u*dist*5)*0.012;
+  tmpA.set(...a.l); tmpB.set(...b.l); lookV.lerpVectors(tmpA,tmpB,Math.min(1,e*1.4)); camera.lookAt(lookV);
+  if(tour.u>=1){tour.i++; tour.u=0; tour.wait=tour.i===TOUR.length-1?5:4.5; showStop(tour.i)}}
+tb.onclick=()=>{tour?stopTour():startTour()};
+tp.onclick=()=>{if(!tour)return; tour.paused=!tour.paused; tp.textContent=tour.paused?'Resume':'Pause'; lastT=performance.now()};
+document.getElementById('t-next').onclick=()=>{if(!tour)return; if(tour.wait>0&&tour.i<TOUR.length-1){tour.wait=0}else if(tour.i<TOUR.length-1){tour.i++;tour.u=0;tour.wait=4.5;showStop(tour.i)}else stopTour()};
+document.getElementById('t-exit').onclick=()=>stopTour(true);
+[...document.querySelectorAll('.hud button')].forEach(b=>{if(b!==tb&&b.id!=='v-night'&&b.id!=='v-labels')b.addEventListener('click',()=>stopTour(false))});
+canvas.addEventListener('pointerdown',()=>{if(tour&&!tour.paused){tour.paused=true;tp.textContent='Resume'}});
 const sb=document.getElementById('v-spin'); sb.onclick=()=>{const on=sb.getAttribute('aria-pressed')!=='true';sb.setAttribute('aria-pressed',on);controls.autoRotate=on;controls.autoRotateSpeed=0.6};
 
 camera.position.copy(views.aerial[0]); controls.target.copy(views.aerial[1]);
@@ -769,9 +838,9 @@ new MutationObserver(applyTheme).observe(document.documentElement,{attributes:tr
 const v=new THREE.Vector3(); let clock=0; const rose=document.getElementById('rose');
 function tick(){
   requestAnimationFrame(tick); clock+=0.016;
-  if(anim){anim.t=Math.min(1,anim.t+0.022);const e=1-Math.pow(1-anim.t,3);camera.position.lerpVectors(anim.p0,anim.p1,e);controls.target.lerpVectors(anim.t0,anim.t1,e);if(anim.t>=1)anim=null}
+  if(anim&&!tour){anim.t=Math.min(1,anim.t+0.022);const e=1-Math.pow(1-anim.t,3);camera.position.lerpVectors(anim.p0,anim.p1,e);controls.target.lerpVectors(anim.t0,anim.t1,e);if(anim.t>=1)anim=null}
   if(!reduce){waves.forEach(f=>f.rotation.y=Math.sin(clock*2+f.userData.wave)*0.25);swings.forEach((w,i)=>{if(w.userData.plank)w.userData.plank.rotation.z=Math.sin(clock*0.9)*0.14;else w.rotation.x=Math.sin(clock*1.3+i)*0.18})}
-  controls.update(); renderer.render(scene,camera);
+  if(tour)stepTour(); else controls.update(); renderer.render(scene,camera);
   {const dx=controls.target.x-camera.position.x, dz=controls.target.z-camera.position.z; rose.setAttribute('transform','rotate('+(Math.atan2(dx,dz)*180/Math.PI)+' 40 40)')}
   const w=stage.clientWidth,h=stage.clientHeight;
   Object.values(items).forEach(it=>{v.copy(centerOf(it));v.y+=it.labelH;v.project(camera);

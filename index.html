@@ -262,6 +262,9 @@ pantry:{name:"Donation Pantry",k:"Support",size:"~60 × 35 ft",
  maint:{name:"Maintenance Yard & Shop",k:"Operations",size:"Office ~40 × 30 ft + warehouse ~70 × 50 ft",
    text:"Northwest corner, next to the solar field and battery yard so the team keeps that equipment in view every day. Office faces the west-edge service track, with the warehouse and shop behind it. Trucks and mowers reach it along the fence line and never cross the main campus.",
    bullets:["Front office for the facilities manager","Warehouse and repair shop","Fenced yard for mowers, tractor and trailers","Fuel and paint storage on the far side, ~80 ft from the battery yard","Close to the meadow and back acres for mowing"]},
+ cottage:{name:"Caretaker Cottage",k:"Staff housing",size:"~1,100 sq ft home + private yard",
+   text:"Home for the security manager, steps from the Gatehouse and across the campus from the RV lot. Private and fenced, so staff housing stays separate from guest areas, and the manager is seen as responsible for the whole campus, not one corner of it. Built to ride out a hurricane.",
+   bullets:["2 bed / 2 bath with a private fenced yard and carport","Storm-hardened: raised slab, impact windows, metal roof, safe room","Standby generator plus a tie-in to the campus battery","2-minute walk to the Gatehouse, short cart ride to CW Rally Point","Separate from the RV lot and Lodge guests"]},
  gate:{name:"Gatehouse",k:"Security",size:"~12 × 12 ft booth + gate arm",
    text:"The campus's 24/7 security post. Inner gate on the entrance drive, just past the market lot. The market stays open to the public while the gate controls after-hours access to the campus, Lodge and RV lot.",
    bullets:["24/7 security post: camera monitors, radios, visitor log","Gate arm with keypad / card access for Lodge and RV guests","After-hours check-in for Lodge and RV arrivals","Welcome point for first-time visitors","Reports to the security manager at CW Rally Point"]},
@@ -630,11 +633,31 @@ flat(3,51,0xa39c88,38.6,9,0.031);   // gravel service track / fire lane along th
   scene.add(g); reg('bees',g,meshes,2.2);
 })();
 
+// Caretaker Cottage: near the Gatehouse, away from the RV lot
+(function(){
+  const g=new THREE.Group(); g.position.set(9.5,0,-39);
+  const yard=new THREE.Mesh(new THREE.BoxGeometry(8,0.05,5.6),M(0x8faa5f)); yard.position.y=0.03; g.add(yard);
+  const fence=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(8,0.5,5.6)),new THREE.LineBasicMaterial({color:0xe8e4d4})); fence.position.y=0.25; g.add(fence);
+  const slab=new THREE.Mesh(new THREE.BoxGeometry(4.6,0.4,3.6),M(0xb8b2a4)); slab.position.set(-0.8,0.2,0); g.add(slab);
+  const body=new THREE.Mesh(new THREE.BoxGeometry(4.2,1.8,3.2),M(0xc9b48f)); body.position.set(-0.8,1.3,0); body.castShadow=true; g.add(body);
+  const roof=new THREE.Mesh(new THREE.CylinderGeometry(0.01,2.9,1.2,4),M(0x5d6a72)); roof.rotation.y=Math.PI/4; roof.scale.set(1.05,1,0.8); roof.position.set(-0.8,2.8,0); roof.castShadow=true; g.add(roof);
+  const porch=new THREE.Mesh(new THREE.BoxGeometry(2.4,0.12,1.1),roofMat); porch.position.set(-0.8,1.9,-2.15); g.add(porch);
+  [[-1.9,-2.6],[0.3,-2.6]].forEach(q=>{const c=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.5,0.1),M(0xe8e4d4));c.position.set(q[0],1.15,q[1]);g.add(c)});
+  const win=new THREE.Mesh(new THREE.BoxGeometry(3,0.5,0.06),glass); win.position.set(-0.8,1.45,-1.63); g.add(win);
+  const cp=new THREE.Mesh(new THREE.BoxGeometry(2,0.12,3),roofMat); cp.position.set(2.6,1.7,0); g.add(cp);
+  [[1.7,-1.4],[3.5,-1.4],[1.7,1.4],[3.5,1.4]].forEach(q=>{const c=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.7,0.1),M(0x6c6c66));c.position.set(q[0],0.85,q[1]);g.add(c)});
+  const truck=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.9,2.2),M(0x2f3a45)); truck.position.set(2.6,0.5,0); g.add(truck);
+  const gen=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.6,0.5),M(0xd8dcd8)); gen.position.set(-3.4,0.3,1.6); g.add(gen);
+  panel(g,3.6,1.4,-0.8,2.95,0.6,-0.35);
+  flat(3.5,2,0x6b6a66,4,-40,0.032); // short driveway to the entrance drive
+  scene.add(g); reg('cottage',g,[body,roof],3.8);
+})();
+
 // trees (seeded)
 let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
 const trunkM=M(0x5b4632), leafA=M(0x4f6b34), leafB=M(0x3e5a2c);
 function clear(x,z){
-  const zones=[[32.5,37,7],[24.5,-41.5,4.5],[3,-43,3],[35.6,-26,3],[0,13,11],[-11,8,6],[11,8,6],[24,8,6],[20.5,15,6],[18,-8,7],[-18,-10,9],[10,-27,6],[19.5,-24.5,5],[23,25,12],[-14,-26,11],[29,-24,9],[0,-30,4],[0,3,6],[-9,26,10],[-9,19,3],[6,24,7],[-21,18,7],[-24,-36,5],[-33,-33,9],[-26,-27,4]];
+  const zones=[[9.5,-39,6],[32.5,37,7],[24.5,-41.5,4.5],[3,-43,3],[35.6,-26,3],[0,13,11],[-11,8,6],[11,8,6],[24,8,6],[20.5,15,6],[18,-8,7],[-18,-10,9],[10,-27,6],[19.5,-24.5,5],[23,25,12],[-14,-26,11],[29,-24,9],[0,-30,4],[0,3,6],[-9,26,10],[-9,19,3],[6,24,7],[-21,18,7],[-24,-36,5],[-33,-33,9],[-26,-27,4]];
   const rr=Math.hypot(x,z); if(Math.abs(rr-35)<2||Math.abs(rr-37.2)<2.4)return false;
   if(Math.abs(x)<12 && z<9)return false;          // view corridor: gate -> Chevron stays open
   if(z>40.5)return false;

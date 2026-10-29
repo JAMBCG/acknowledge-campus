@@ -228,7 +228,7 @@ const DATA={
    text:"Home of the Battle Buddy fleet. Volunteers check in here, grab keys, and roll out past the flags. Wheelchair-ready Sprinter vans plus a ~15-passenger accessible bus.",
    bullets:["4 van bays + 1 bus bay, wash rack, EV-ready charging","Volunteer lounge and driver ready room","Dispatch and trip-planning office","Second-floor suite held for a future USO or partner office","Security manager's office: patrol schedule, key control, incident reports","Security patrol golf cart and radio charging","Golf-cart fleet (4 carts) under a charging canopy","Rooftop solar"]},
  plaza:{name:"Acknowledgment Plaza",k:"Honors · Entrance",size:"~95 ft circle",
-   text:"Every arrival drives past it. Seven poles (U.S. flag in the center, six branches around it), a backlit wall facing the drive, and a ring of memorial pavers. The wall's ACKNOWLEDGE text is a placeholder: it could become a famous quote or a digital message sign for events and announcements. Turn on Night to see it lit.",
+   text:"Every arrival drives past it. Seven poles (U.S. flag in the center, six branches around it), a backlit wall facing the drive, and a ring of memorial pavers. For now the wall holds a little something for sharp-eyed visitors (zoom in). Later it could become a famous quote or a digital message sign for events and announcements. Turn on Night to see it lit.",
    bullets:["Six backlit glass panels, one per branch, glowing in that branch's color","Uplit flags all night (proper display for flags flown after dark)","Center light beam visible from the road","Memorial paver ring families can sponsor","Send-off point for CW Rally Point trips"]},
  pond:{name:"CW Fishing Pond & Dock",k:"Outdoors",size:"~1.4 acres",
    text:"Stocked pond with an accessible fishing dock, the low-key reason a lot of veterans will show up the first time.",
@@ -356,8 +356,9 @@ const plazaLights=[], panels=[]; let wallMat, beam, signMat;
   const wall=new THREE.Mesh(new THREE.BoxGeometry(0.5,1.7,8.2),M(0x3a3f2e)); wall.position.set(5.3,0.85,0); wall.castShadow=true; g.add(wall);
   const cv=document.createElement('canvas'), ce=document.createElement('canvas'); cv.width=ce.width=1024; cv.height=ce.height=200;
   function draw(c,fg,bg){const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,1024,200);x.fillStyle=fg;x.textAlign='center';
-    x.font='800 112px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('ACKNOWLEDGE',512,118);
-    x.font='600 34px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('EVERY BRANCH · EVERY ERA · EVERY VETERAN',512,172)}
+    x.font='800 62px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('PLAZA OPENS AT 0600.',512,66);
+    x.fillText('BE HERE AT 0500.',512,128);
+    x.font='600 30px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('SAW THIS? TELL BRANDON: "I WAS 15 MINUTES EARLY."',512,180)}
   draw(cv,'#d9b56a','#3a3f2e'); draw(ce,'#ffffff','#000000');
   const tex=new THREE.CanvasTexture(cv), etex=new THREE.CanvasTexture(ce);
   wallMat=new THREE.MeshLambertMaterial({map:tex,emissiveMap:etex,emissive:0x000000});

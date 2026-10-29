@@ -260,8 +260,8 @@ pantry:{name:"Donation Pantry",k:"Support",size:"~60 × 35 ft",
    text:"Pantry and donation warehouse sharing the market's lot, so produce, food and donated goods move between them easily. Veterans pick up through a private side door.",
    bullets:["Food pantry stocked from the gardens and donations","Clothing and household goods for veterans moving into new housing","Donor drop-off at the market lot","Private pickup entrance"]},
  maint:{name:"Maintenance Yard & Shop",k:"Operations",size:"Office ~40 × 30 ft + warehouse ~70 × 50 ft",
-   text:"Office up front, warehouse and shop behind, with a fenced yard. Reached by the service lane past CW Rally Point, so mowers and trucks never cross the main campus.",
-   bullets:["Front office for the facilities manager","Warehouse and repair shop","Fenced yard for mowers, tractor and trailers","Fuel and material storage"]},
+   text:"Northwest corner, next to the solar field and battery yard so the team keeps that equipment in view every day. Office faces the west-edge service track, with the warehouse and shop behind it. Trucks and mowers reach it along the fence line and never cross the main campus.",
+   bullets:["Front office for the facilities manager","Warehouse and repair shop","Fenced yard for mowers, tractor and trailers","Fuel and paint storage on the far side, ~80 ft from the battery yard","Close to the meadow and back acres for mowing"]},
  gate:{name:"Gatehouse",k:"Security",size:"~12 × 12 ft booth + gate arm",
    text:"Inner gate on the entrance drive, just past the market lot. The market stays open to the public while the gate controls after-hours access to the campus, Lodge and RV lot.",
    bullets:["Staffed booth with camera coverage","Gate arm with keypad / card access for Lodge and RV guests","Welcome point for first-time visitors"]},
@@ -494,9 +494,9 @@ const plazaLights=[], panels=[]; let wallMat, beam;
   [-23.5,-28.5].forEach(z=>{const p=panel(scene,17,4,-14,2.6,z,-0.12); cp.push(p);
     for(let i=0;i<4;i++){const post=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,2.6,6),M(0x8a8a86));post.position.set(-21.5+i*5,1.3,z);scene.add(post)}});
   const g=new THREE.Group(); g.position.set(-1,0,47.5);
-  const rows=[]; for(let r=0;r<8;r++){rows.push(panel(g,62,1.1,3,0.8,-5+r*1.4,-0.4))}
-  const bat=new THREE.Mesh(new THREE.BoxGeometry(2,1.3,4),M(0xd8dcd8)); bat.position.set(36,0.65,-2); bat.castShadow=true; g.add(bat);
-  const bat2=bat.clone(); bat2.position.z=3; g.add(bat2);
+  const rows=[]; for(let r=0;r<8;r++){rows.push(panel(g,60,1.1,2,0.8,-5+r*1.4,-0.4))}
+  const bat=new THREE.Mesh(new THREE.BoxGeometry(4,1.3,1.6),M(0xd8dcd8)); bat.position.set(35,0.65,4.6); bat.castShadow=true; g.add(bat);
+  const bat2=bat.clone(); bat2.position.z=2.6; g.add(bat2);
   const f=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(76,0.6,12.5)),new THREE.LineBasicMaterial({color:0x3b3b33})); f.position.set(1.5,0.3,-0.6); g.add(f);
   scene.add(g); reg('solar',g,rows.concat([bat],cp),2.2);
 })();
@@ -569,11 +569,11 @@ const swings=[];
 
 // service lane extension to the maintenance yard
 flat(9,3,0x6b6a66,35.5,-17.5,0.032);
-flat(3,12.5,0x6b6a66,38.6,-24.5,0.032);
+flat(3,51,0xa39c88,38.6,9,0.031);   // gravel service track / fire lane along the west fence
 
 // Maintenance Yard & Shop: office up front, warehouse behind
 (function(){
-  const g=new THREE.Group(); g.position.set(36,0,-35.5);
+  const g=new THREE.Group(); g.position.set(32.5,0,37); g.rotation.y=Math.PI/2;
   const yard=new THREE.Mesh(new THREE.BoxGeometry(8,0.05,10),M(0x9a9585)); yard.position.y=0.03; yard.receiveShadow=true; g.add(yard);
   const office=new THREE.Mesh(new THREE.BoxGeometry(4,2.2,3),M(0xb9ad91)); office.position.set(-0.5,1.1,3.2); office.castShadow=true; g.add(office);
   const oroof=new THREE.Mesh(new THREE.BoxGeometry(4.4,0.25,3.4),roofMat); oroof.position.set(-0.5,2.32,3.2); g.add(oroof);
@@ -634,10 +634,11 @@ flat(3,12.5,0x6b6a66,38.6,-24.5,0.032);
 let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
 const trunkM=M(0x5b4632), leafA=M(0x4f6b34), leafB=M(0x3e5a2c);
 function clear(x,z){
-  const zones=[[36,-35.5,7],[24.5,-41.5,4.5],[3,-43,3],[38.6,-24.5,3],[35.6,-26,3],[0,13,11],[-11,8,6],[11,8,6],[24,8,6],[20.5,15,6],[18,-8,7],[-18,-10,9],[10,-27,6],[19.5,-24.5,5],[23,25,12],[-14,-26,11],[29,-24,9],[0,-30,4],[0,3,6],[-9,26,10],[-9,19,3],[6,24,7],[-21,18,7],[-24,-36,5],[-33,-33,9],[-26,-27,4]];
+  const zones=[[32.5,37,7],[24.5,-41.5,4.5],[3,-43,3],[35.6,-26,3],[0,13,11],[-11,8,6],[11,8,6],[24,8,6],[20.5,15,6],[18,-8,7],[-18,-10,9],[10,-27,6],[19.5,-24.5,5],[23,25,12],[-14,-26,11],[29,-24,9],[0,-30,4],[0,3,6],[-9,26,10],[-9,19,3],[6,24,7],[-21,18,7],[-24,-36,5],[-33,-33,9],[-26,-27,4]];
   const rr=Math.hypot(x,z); if(Math.abs(rr-35)<2||Math.abs(rr-37.2)<2.4)return false;
   if(Math.abs(x)<12 && z<9)return false;          // view corridor: gate -> Chevron stays open
-  if(z>40.5)return false;                          // solar field
+  if(z>40.5)return false;
+  if(x>36 && z>-19 && z<36)return false;           // service track                          // solar field
   if(z<-40 && x>4 && x<30)return false;            // market
   if(Math.abs(z+17.5)<2.5 && x>0 && x<32)return false;
   return !zones.some(q=>Math.hypot(x-q[0],z-q[1])<q[2]) && Math.abs(x)<SIDE/2-1.5 && z>ZMIN+1.5 && z<ZMAX-1.5;

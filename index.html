@@ -182,6 +182,7 @@ flat(18,12,0x5d5c58,-14,-26);                     // parking lot
 for(let i=0;i<8;i++){flat(0.15,4,0xe8e4d4,-21.5+i*2.2,-23.5,0.04);flat(0.15,4,0xe8e4d4,-21.5+i*2.2,-28.5,0.04)}
 
 const pick=[], items={};
+let trailCurve=null; const trailPts=[];
 let seed2=11; const rnd2=()=>{seed2=(seed2*16807)%2147483647;return seed2/2147483647};
 function building(id,o){
   const g=new THREE.Group(); g.position.set(o.x,0,o.z); g.rotation.y=o.rot||0;
@@ -221,8 +222,8 @@ const DATA={
    text:"Indoor event hall for ceremonies, retirement send-offs, banquets and community days, usable year-round in any weather. Sits near parking so rentals don't pass through the campus.",
    bullets:["Seats ~300 for ceremonies, ~200 for banquets","Catering kitchen","Stage and sound for color guard and speakers","Rentable for weddings, reunions and company events (revenue)","Screened patio and lawn for outdoor events, with fans and mosquito misting","Could be built as a storm shelter for the community"]},
  shelter:{name:"Pondside Pavilion",k:"Outdoors",size:"~90 × 50 ft, open sides",
-   text:"Open-air pavilion on the pond's edge between the Health & Wellness Center and the water. Shade for cookouts, fishing days and family picnics.",
-   bullets:["Picnic tables and a grill line","Home base for fishing days","Ceiling fans and lights for summer evenings","Short walk from the Lodge and Family Center"]},
+   text:"Open-air pavilion on the pond's quiet northwest shore, next to the Victory Garden and a short walk from the Swing & Play Stops and the Lodge lawn. Shade for cookouts, fishing days and family picnics.",
+   bullets:["Picnic tables and a grill line","Home base for fishing days","Ceiling fans and lights for summer evenings","Short walk from the Lodge, Family Center and swing pergola"]},
  motor:{name:"CW Rally Point",k:"Battle Buddy HQ",size:"5 vehicle bays + 2-story volunteer building",
    text:"Home of the Battle Buddy fleet. Volunteers check in here, grab keys, and roll out past the flags. Wheelchair-ready Sprinter vans plus a ~15-passenger accessible bus.",
    bullets:["4 van bays + 1 bus bay, wash rack, EV-ready charging","Volunteer lounge and driver ready room","Dispatch and trip-planning office","Second-floor suite held for a future USO or partner office","Security manager's office: patrol schedule, key control, incident reports","Security patrol golf cart and radio charging","Golf-cart fleet (4 carts) under a charging canopy","Rooftop solar"]},
@@ -319,11 +320,11 @@ panel(items.motor.group,8.5,3.6,0,2.75,0,-0.12);
 // JD Event Center (enclosed) + Pondside Pavilion (open)
 building('pavilion',{x:-18,z:-10,w:12,d:8,h:3.4,color:0x9a8a6e,pitch:2.4,porch:true,rot:Math.PI});
 (function(){
-  const g=new THREE.Group(); g.position.set(20.5,0,15); g.rotation.y=-0.15;
-  const roof=new THREE.Mesh(new THREE.CylinderGeometry(0.01,5.6,1.8,4),M(0x6e4a2e)); roof.rotation.y=Math.PI/4; roof.scale.set(1.15,1,0.65); roof.position.y=3.2; roof.castShadow=true; g.add(roof);
-  const slab=new THREE.Mesh(new THREE.BoxGeometry(9,0.2,5),M(0xb8b2a4)); slab.position.y=0.1; slab.receiveShadow=true; g.add(slab);
-  for(let i=-1;i<=1;i++)for(let j of[-1,1]){const p=new THREE.Mesh(new THREE.BoxGeometry(0.3,2.4,0.3),M(0x5a3d26));p.position.set(i*4,1.2,j*2.2);p.castShadow=true;g.add(p)}
-  for(let i=0;i<3;i++){const t=new THREE.Mesh(new THREE.BoxGeometry(2,0.12,0.9),M(0x8b6b45));t.position.set(-2.8+i*2.8,0.85,0);g.add(t)}
+  const g=new THREE.Group(); g.position.set(10.5,0,29.8);
+  const roof=new THREE.Mesh(new THREE.CylinderGeometry(0.01,5.6,1.8,4),M(0x6e4a2e)); roof.rotation.y=Math.PI/4; roof.scale.set(1.05,1,0.6); roof.position.y=3.2; roof.castShadow=true; g.add(roof);
+  const slab=new THREE.Mesh(new THREE.BoxGeometry(8.5,0.2,4.5),M(0xb8b2a4)); slab.position.y=0.1; slab.receiveShadow=true; g.add(slab);
+  for(let i=-1;i<=1;i++)for(let j of[-1,1]){const p=new THREE.Mesh(new THREE.BoxGeometry(0.3,2.4,0.3),M(0x5a3d26));p.position.set(i*3.8,1.2,j*2);p.castShadow=true;g.add(p)}
+  for(let i=0;i<3;i++){const t=new THREE.Mesh(new THREE.BoxGeometry(2,0.12,0.9),M(0x8b6b45));t.position.set(-2.6+i*2.6,0.85,0);g.add(t)}
   scene.add(g); reg('shelter',g,[roof,slab],4.6);
 })();
 
@@ -379,9 +380,13 @@ const plazaLights=[], panels=[]; let wallMat, beam;
 
 // trail loop
 (function(){
-  const pts=[]; for(let i=0;i<=96;i++){const a=i/96*Math.PI*2; pts.push(new THREE.Vector3(Math.cos(a)*35,0.08,Math.sin(a)*35*0.98))}
-  const curve=new THREE.CatmullRomCurve3(pts,true);
-  const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,200,0.45,6,true),M(0xc4b48c)); tube.scale.y=0.15; tube.receiveShadow=true; scene.add(tube);
+  const P=[]; const arc=(a)=>{const r=a*Math.PI/180; P.push([Math.cos(r)*35,Math.sin(r)*34.3])};
+  [90,75,60,45,30,15,0,-15].forEach(arc);
+  [[35.8,-14],[37.6,-20],[37.6,-28],[35.5,-33],[30,-34.3],[20,-34.4],[10,-34.4],[0,-34.4],[-10,-34.4],[-19,-34.4],[-23.6,-33],[-24.2,-29],[-24.4,-25],[-26.5,-21]].forEach(q=>P.push(q));
+  [210,195,180,165,150,135,120,105].forEach(arc);
+  const curve=new THREE.CatmullRomCurve3(P.map(q=>new THREE.Vector3(q[0],0.08,q[1])),true);
+  trailCurve=curve; for(let i=0;i<240;i++){const q=curve.getPointAt(i/240); trailPts.push([q.x,q.z])}
+  const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,320,0.45,6,true),M(0xc4b48c)); tube.scale.y=0.15; tube.receiveShadow=true; scene.add(tube);
   reg('trail',tube,[tube],1.2); items.trail.labelAt=new THREE.Vector3(-35,0,0);
 })();
 
@@ -464,9 +469,9 @@ const plazaLights=[], panels=[]; let wallMat, beam;
 (function(){
   const meshes=[], g=new THREE.Group();
   const fruitCols=[0xf29f05,0x6b3e75,0x2b2140,0xf2a37a,0x5a2d5e,0xc0392b];
-  const angles=[200,250,300,20,120,160];
-  angles.forEach((deg,i)=>{
-    const a=deg*Math.PI/180, r=37.2, x=Math.cos(a)*r, z=Math.sin(a)*r*0.98;
+  const spots=[[32.2,18.3,30],[-18.6,31.6,120],[-35,12.5,160],[-35,-12.6,200],[26,-31.9,90],[32.6,0,180]];
+  spots.forEach((sp,i)=>{
+    const a=sp[2]*Math.PI/180, x=sp[0], z=sp[1];
     const s=new THREE.Group(); s.position.set(x,0,z); s.rotation.y=-a+Math.PI/2;
     const pad=new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.6,0.06,20),M(0xc4b48c)); pad.position.y=0.04; s.add(pad);
     const bench=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.12,0.45),M(0x6e4a2e)); bench.position.set(0,0.45,0.6); s.add(bench);
@@ -481,7 +486,7 @@ const plazaLights=[], panels=[]; let wallMat, beam;
     g.add(s); meshes.push(pad,stand,bench);
   });
   scene.add(g); reg('stops',g,meshes,3);
-  const a=200*Math.PI/180; items.stops.labelAt=new THREE.Vector3(Math.cos(a)*37.2,0,Math.sin(a)*37.2*0.98);
+  items.stops.labelAt=new THREE.Vector3(-35,0,-12.6);
 })();
 
 // Welcome Circle at the Comfort Zone porch
@@ -512,8 +517,8 @@ const plazaLights=[], panels=[]; let wallMat, beam;
 const swings=[];
 (function(){
   const meshes=[]; let first=null;
-  [90,340].forEach(deg=>{
-    const a=deg*Math.PI/180, x=Math.cos(a)*37.6, z=Math.sin(a)*37.6*0.98;
+  [[0,36.8,90],[30,-36.9,270]].forEach(sp=>{
+    const a=sp[2]*Math.PI/180, x=sp[0], z=sp[1];
     const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=-a+Math.PI/2; if(!first)first=g;
     const pad=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.2,0.06,24),M(0xc4b48c)); pad.position.y=0.04; g.add(pad);
     const wood=M(0x6e4a2e);
@@ -537,7 +542,9 @@ const swings=[];
 // path lights: trail loop + entrance drive
 (function(){
   const geo=new THREE.CylinderGeometry(0.1,0.12,0.7,6);
-  for(let i=0;i<48;i++){const a=i/48*Math.PI*2; const b=new THREE.Mesh(geo,bollM); b.position.set(Math.cos(a)*34.1,0.35,Math.sin(a)*34.1*0.98); scene.add(b)}
+  for(let i=0;i<56;i++){const t=i/56, q=trailCurve.getPointAt(t), tg=trailCurve.getTangentAt(t);
+    let nx=tg.z, nz=-tg.x; if(nx*q.x+nz*q.z<0){nx=-nx;nz=-nz}
+    const b=new THREE.Mesh(geo,bollM); b.position.set(q.x+nx*0.95,0.35,q.z+nz*0.95); scene.add(b)}
   for(let z=-39;z<-4;z+=4){[-2.6,2.6].forEach(x=>{const b=new THREE.Mesh(geo,bollM);b.position.set(x,0.35,z);scene.add(b)})}
 })();
 
@@ -661,8 +668,9 @@ flat(3,51,0xa39c88,38.6,9,0.031);   // gravel service track / fire lane along th
 let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
 const trunkM=M(0x5b4632), leafA=M(0x4f6b34), leafB=M(0x3e5a2c);
 function clear(x,z){
-  const zones=[[20,-41.5,5.5],[32.5,37,7],[-19,-41.7,4.5],[3,-43,3],[35.6,-26,3],[0,13,11],[-11,8,6],[11,8,6],[24,8,6],[20.5,15,6],[18,-8,7],[-18,-10,9],[10,-27,6],[19.5,-24.5,5],[23,25,12],[-14,-26,11],[29,-24,9],[0,-30,4],[0,3,6],[-9,26,10],[-9,19,3],[6,24,7],[-21,18,7],[-35.5,-44.6,5],[-33,-33,9],[-26.8,-33,2]];
-  const rr=Math.hypot(x,z); if(Math.abs(rr-35)<2||Math.abs(rr-37.2)<2.4)return false;
+  const zones=[[20,-41.5,5.5],[32.5,37,7],[-19,-41.7,4.5],[3,-43,3],[35.6,-26,3],[0,13,11],[-11,8,6],[11,8,6],[24,8,6],[10.5,29.8,5.5],[26,-31.9,3.5],[32.6,0,3.5],[30,-36.9,3.5],[18,-8,7],[-18,-10,9],[10,-27,6],[19.5,-24.5,5],[23,25,12],[-14,-26,11],[29,-24,9],[0,-30,4],[0,3,6],[-9,26,10],[-9,19,3],[6,24,7],[-21,18,7],[-35.5,-44.6,5],[-33,-33,9],[-26.8,-33,2]];
+  const rr=Math.hypot(x,z); if(Math.abs(rr-37.2)<2.4)return false;
+  for(const q of trailPts){if(Math.hypot(x-q[0],z-q[1])<2.2)return false}
   if(Math.abs(x)<12 && z<9)return false;          // view corridor: gate -> Chevron stays open
   if(z>40.5)return false;
   if(x>36 && z>-19 && z<36)return false;           // service track                          // solar field

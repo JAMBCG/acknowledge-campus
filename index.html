@@ -222,13 +222,13 @@ const DATA={
    text:"Indoor event hall for ceremonies, retirement send-offs, banquets and community days, usable year-round in any weather. Sits near parking so rentals don't pass through the campus.",
    bullets:["Seats ~300 for ceremonies, ~200 for banquets","Catering kitchen","Stage and sound for color guard and speakers","Rentable for weddings, reunions and company events (revenue)","Screened patio and lawn for outdoor events, with fans and mosquito misting","Could be built as a storm shelter for the community"]},
  shelter:{name:"Pondside Pavilion",k:"Outdoors",size:"~90 × 50 ft, open sides",
-   text:"Open-air pavilion on the pond's quiet northwest shore, next to the Victory Garden and a short walk from the Swing & Play Stops and the Lodge lawn. Shade for cookouts, fishing days and family picnics.",
+   text:"Open-air pavilion just north of the walking trail, looking back across the path to the pond. A short walk from the north swing pergola, the Victory Garden and the Lodge lawn, and well away from the Health & Wellness Center. Shade for cookouts, fishing days and family picnics.",
    bullets:["Picnic tables and a grill line","Home base for fishing days","Ceiling fans and lights for summer evenings","Short walk from the Lodge, Family Center and swing pergola"]},
  motor:{name:"CW Rally Point",k:"Battle Buddy HQ",size:"5 vehicle bays + 2-story volunteer building",
    text:"Home of the Battle Buddy fleet. Volunteers check in here, grab keys, and roll out past the flags. Wheelchair-ready Sprinter vans plus a ~15-passenger accessible bus.",
    bullets:["4 van bays + 1 bus bay, wash rack, EV-ready charging","Volunteer lounge and driver ready room","Dispatch and trip-planning office","Second-floor suite held for a future USO or partner office","Security manager's office: patrol schedule, key control, incident reports","Security patrol golf cart and radio charging","Golf-cart fleet (4 carts) under a charging canopy","Rooftop solar"]},
  plaza:{name:"Acknowledgment Plaza",k:"Honors · Entrance",size:"~95 ft circle",
-   text:"Every arrival drives past it. Seven poles (U.S. flag in the center, six branches around it), a backlit ACKNOWLEDGE wall facing the drive, and a ring of memorial pavers. Turn on Night to see it lit.",
+   text:"Every arrival drives past it. Seven poles (U.S. flag in the center, six branches around it), a backlit wall facing the drive, and a ring of memorial pavers. The wall's ACKNOWLEDGE text is a placeholder: it could become a famous quote or a digital message sign for events and announcements. Turn on Night to see it lit.",
    bullets:["Six backlit glass panels, one per branch, glowing in that branch's color","Uplit flags all night (proper display for flags flown after dark)","Center light beam visible from the road","Memorial paver ring families can sponsor","Send-off point for CW Rally Point trips"]},
  pond:{name:"CW Fishing Pond & Dock",k:"Outdoors",size:"~1.4 acres",
    text:"Stocked pond with an accessible fishing dock, the low-key reason a lot of veterans will show up the first time.",
@@ -266,6 +266,9 @@ pantry:{name:"Donation Pantry",k:"Support",size:"~60 × 35 ft",
  cottage:{name:"Caretaker Cottage",k:"Staff housing",size:"~1,100 sq ft home + private yard",
    text:"Home for the security manager in the quiet southwest corner, inside the security gate, with a private driveway and a tree buffer between the house and the main road. It sits across the campus from the RV lot and the public market. Private and fenced, so staff housing stays separate from guest areas, and the manager is seen as responsible for the whole campus, not one corner of it. Built to ride out a hurricane.",
    bullets:["2 bed / 2 bath with a private fenced yard and carport","Storm-hardened: raised slab, impact windows, metal roof, safe room","Standby generator plus a tie-in to the campus battery","About a 1-minute walk to the Gatehouse, short cart ride to CW Rally Point","Separate from the RV lot, the market crowds and Lodge guests"]},
+ sign:{name:"Acknowledge Entrance Sign",k:"Entrance",size:"~70 ft monument sign",
+   text:"The first thing anyone sees from the main road: a stone monument sign on the left as you turn in, lit at night.",
+   bullets:["ACKNOWLEDGE CAMPUS in brass lettering","\"Every branch · Every era · Every veteran\"","Backlit letters and ground uplights for night","Low enough to keep sight lines clear for drivers"]},
  gate:{name:"Gatehouse",k:"Security",size:"~12 × 12 ft booth + gate arm",
    text:"The campus's 24/7 security post. Inner gate on the entrance drive, just past the market lot. The market stays open to the public while the gate controls after-hours access to the campus, Lodge and RV lot.",
    bullets:["24/7 security post: camera monitors, radios, visitor log","Gate arm with keypad / card access for Lodge and RV guests","After-hours check-in for Lodge and RV arrivals","Welcome point for first-time visitors","Reports to the security manager at CW Rally Point"]},
@@ -320,7 +323,7 @@ panel(items.motor.group,8.5,3.6,0,2.75,0,-0.12);
 // JD Event Center (enclosed) + Pondside Pavilion (open)
 building('pavilion',{x:-18,z:-10,w:12,d:8,h:3.4,color:0x9a8a6e,pitch:2.4,porch:true,rot:Math.PI});
 (function(){
-  const g=new THREE.Group(); g.position.set(10.5,0,29.8);
+  const g=new THREE.Group(); g.position.set(12,0,37.8);
   const roof=new THREE.Mesh(new THREE.CylinderGeometry(0.01,5.6,1.8,4),M(0x6e4a2e)); roof.rotation.y=Math.PI/4; roof.scale.set(1.05,1,0.6); roof.position.y=3.2; roof.castShadow=true; g.add(roof);
   const slab=new THREE.Mesh(new THREE.BoxGeometry(8.5,0.2,4.5),M(0xb8b2a4)); slab.position.y=0.1; slab.receiveShadow=true; g.add(slab);
   for(let i=-1;i<=1;i++)for(let j of[-1,1]){const p=new THREE.Mesh(new THREE.BoxGeometry(0.3,2.4,0.3),M(0x5a3d26));p.position.set(i*3.8,1.2,j*2);p.castShadow=true;g.add(p)}
@@ -329,7 +332,7 @@ building('pavilion',{x:-18,z:-10,w:12,d:8,h:3.4,color:0x9a8a6e,pitch:2.4,porch:t
 })();
 
 // Acknowledgment Plaza
-const plazaLights=[], panels=[]; let wallMat, beam;
+const plazaLights=[], panels=[]; let wallMat, beam, signMat;
 (function(){
   const g=new THREE.Group(); g.position.set(10,0,-27);
   const pad=new THREE.Mesh(new THREE.CylinderGeometry(4,4,0.12,48),M(0xd2ccbc)); pad.position.y=0.06; pad.receiveShadow=true; g.add(pad);
@@ -668,7 +671,7 @@ flat(3,51,0xa39c88,38.6,9,0.031);   // gravel service track / fire lane along th
 let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
 const trunkM=M(0x5b4632), leafA=M(0x4f6b34), leafB=M(0x3e5a2c);
 function clear(x,z){
-  const zones=[[20,-41.5,5.5],[32.5,37,7],[-19,-41.7,4.5],[3,-43,3],[35.6,-26,3],[0,13,11],[-11,8,6],[11,8,6],[24,8,6],[10.5,29.8,5.5],[26,-31.9,3.5],[32.6,0,3.5],[30,-36.9,3.5],[18,-8,7],[-18,-10,9],[10,-27,6],[19.5,-24.5,5],[23,25,12],[-14,-26,11],[29,-24,9],[0,-30,4],[0,3,6],[-9,26,10],[-9,19,3],[6,24,7],[-21,18,7],[-35.5,-44.6,5],[-33,-33,9],[-26.8,-33,2]];
+  const zones=[[8,-50.9,4.5],[20,-41.5,5.5],[32.5,37,7],[-19,-41.7,4.5],[3,-43,3],[35.6,-26,3],[0,13,11],[-11,8,6],[11,8,6],[24,8,6],[12,37.8,5.5],[26,-31.9,3.5],[32.6,0,3.5],[30,-36.9,3.5],[18,-8,7],[-18,-10,9],[10,-27,6],[19.5,-24.5,5],[23,25,12],[-14,-26,11],[29,-24,9],[0,-30,4],[0,3,6],[-9,26,10],[-9,19,3],[6,24,7],[-21,18,7],[-35.5,-44.6,5],[-33,-33,9],[-26.8,-33,2]];
   const rr=Math.hypot(x,z); if(Math.abs(rr-37.2)<2.4)return false;
   for(const q of trailPts){if(Math.hypot(x-q[0],z-q[1])<2.2)return false}
   if(Math.abs(x)<12 && z<9)return false;          // view corridor: gate -> Chevron stays open
@@ -686,7 +689,26 @@ while(placed<120){const x=(rnd()-0.5)*SIDE,z=ZMIN+rnd()*DEPTH; if(!clear(x,z))co
   const l=new THREE.Mesh(new THREE.IcosahedronGeometry(1.4*s,0),rnd()>.5?leafA:leafB); l.position.set(x,2.1*s,z); l.castShadow=true; scene.add(l);}
 
 // sign at the gate
-(function(){const s=new THREE.Mesh(new THREE.BoxGeometry(5,1.2,0.4),M(0x3a3f2e)); s.position.set(-4.5,0.8,ZMIN+1.5); s.castShadow=true; scene.add(s)})();
+// Entrance monument sign: left of the drive as you turn in from the main road
+(function(){
+  const g=new THREE.Group(); g.position.set(8,0,ZMIN+1.6); g.rotation.y=Math.PI+0.2;
+  const base=new THREE.Mesh(new THREE.BoxGeometry(7.4,0.5,1.5),M(0xb9ad91)); base.position.y=0.25; base.castShadow=true; g.add(base);
+  const body=new THREE.Mesh(new THREE.BoxGeometry(6.6,1.9,0.6),M(0x3a3f2e)); body.position.y=1.45; body.castShadow=true; g.add(body);
+  const cap=new THREE.Mesh(new THREE.BoxGeometry(7,0.2,0.8),M(0xb9ad91)); cap.position.y=2.5; g.add(cap);
+  const cv=document.createElement('canvas'), ce=document.createElement('canvas'); cv.width=ce.width=1024; cv.height=ce.height=300;
+  function draw(c,fg,bg){const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,1024,300);x.fillStyle=fg;x.textAlign='center';
+    x.font='800 150px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('ACKNOWLEDGE',512,150);
+    x.font='700 64px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('C A M P U S',512,222);
+    x.font='600 30px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('EVERY BRANCH · EVERY ERA · EVERY VETERAN',512,276)}
+  draw(cv,'#d9b56a','#3a3f2e'); draw(ce,'#ffffff','#000000');
+  const tex=new THREE.CanvasTexture(cv), etex=new THREE.CanvasTexture(ce);
+  signMat=new THREE.MeshLambertMaterial({map:tex,emissiveMap:etex,emissive:0x000000});
+  const face=new THREE.Mesh(new THREE.PlaneGeometry(6.3,1.75),signMat); face.position.set(0,1.45,0.31); g.add(face);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{draw(cv,'#d9b56a','#3a3f2e');draw(ce,'#ffffff','#000000');tex.needsUpdate=etex.needsUpdate=true});
+  [-2.4,2.4].forEach(x=>{const u=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.08,10),bollM);u.position.set(x,0.05,1.4);g.add(u)});
+  [-3.4,3.4].forEach(x=>{const b=new THREE.Mesh(new THREE.IcosahedronGeometry(0.6,0),M(0x4f6b34));b.position.set(x,0.55,0.9);g.add(b)});
+  scene.add(g); reg('sign',g,[base,body,cap],3.2);
+})();
 
 // labels
 const labelsEl=document.getElementById('labels');
@@ -722,7 +744,7 @@ function setNight(on){night=on; nb.setAttribute('aria-pressed',on);
   sun.intensity=on?0.05:0.9; hemi.intensity=on?0.14:0.75;
   glass.emissive.setHex(on?0xc9944a:0x1b2a33); bollM.emissive.setHex(on?0xffe9b8:0x000000);
   plazaLights.forEach(l=>l.intensity=on?1.8:0); panels.forEach(p=>p.material.emissive.setHex(on?p.userData.glow:0));
-  wallMat.emissive.setHex(on?0xffe2a8:0x000000); beam.visible=on; applyTheme()}
+  wallMat.emissive.setHex(on?0xffe2a8:0x000000); signMat.emissive.setHex(on?0xffe2a8:0x000000); beam.visible=on; applyTheme()}
 document.getElementById('v-plaza').onclick=()=>{Object.values(vb).forEach(b=>b.setAttribute('aria-pressed','false'));flyTo(new THREE.Vector3(-6,6,-34),new THREE.Vector3(12,2.5,-27))};
 const sb=document.getElementById('v-spin'); sb.onclick=()=>{const on=sb.getAttribute('aria-pressed')!=='true';sb.setAttribute('aria-pressed',on);controls.autoRotate=on;controls.autoRotateSpeed=0.6};
 

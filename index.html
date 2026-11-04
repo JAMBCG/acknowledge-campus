@@ -285,6 +285,9 @@ pantry:{name:"Donation Pantry",k:"Support",size:"~60 × 35 ft",
  cottage:{name:"Caretaker Cottage",k:"Staff housing",size:"~1,100 sq ft home + private yard",
    text:"Home for the security manager in the quiet southwest corner, inside the security gate, with a private driveway and a tree buffer between the house and the main road. It sits across the campus from the RV lot and the public market. Private and fenced, so staff housing stays separate from guest areas, and the manager is seen as responsible for the whole campus, not one corner of it. Built to ride out a hurricane.",
    bullets:["2 bed / 2 bath with a private fenced yard and carport","Storm-hardened: raised slab, impact windows, metal roof, safe room","Standby generator plus a tie-in to the campus battery","About a 1-minute walk to the Gatehouse, short cart ride to CW Rally Point","Separate from the RV lot, the market crowds and Lodge guests"]},
+ chapel:{name:"Campus Chapel",k:"Faith · Reflection",size:"~50 × 80 ft, seats ~120",
+   text:"A quiet, all-faiths chapel on the east lawn, between the Acknowledge Lodge and the JD Event Center, with a memorial garden out front. Open daily for prayer and reflection. Weddings can hold the ceremony here and the reception next door at the JD Event Center.",
+   bullets:["Seats ~120, with a chaplain's office and a small prayer room","Services by visiting VA chaplains and local churches of every faith","Memorial services, plus a reflection garden with benches","Weddings: ceremony here, reception at the JD Event Center (revenue)","Lit steeple visible across the campus at night"]},
  sign:{name:"Acknowledge Entrance Sign",k:"Entrance",size:"Monument sign on a raised stone plinth",
    text:"The first thing anyone sees from the main road: a stone monument sign on the left as you turn in, lit at night.",
    bullets:["ACKNOWLEDGE CAMPUS in brass lettering","\"Every branch · Every era · Every veteran\"","Backlit letters and ground uplights for night","Low enough to keep sight lines clear for drivers"]},
@@ -687,11 +690,36 @@ flat(3,51,0xa39c88,38.6,9,0.031);   // gravel service track / fire lane along th
   scene.add(g); reg('cottage',g,[body,roof],3.8);
 })();
 
+// Campus Chapel on the east lawn, entry and steeple facing south toward the JD Event Center
+(function(){
+  const g=new THREE.Group(); g.position.set(-24,0,17);
+  const white=M(0xece6d6);
+  const nave=new THREE.Mesh(new THREE.BoxGeometry(5,3,8),white); nave.position.y=1.5; nave.castShadow=nave.receiveShadow=true; g.add(nave);
+  const tri=new THREE.Shape(); tri.moveTo(-2.9,0); tri.lineTo(2.9,0); tri.lineTo(0,2.3); tri.lineTo(-2.9,0);
+  const rg=new THREE.ExtrudeGeometry(tri,{depth:8.4,bevelEnabled:false}); rg.translate(0,0,-4.2);
+  const roof=new THREE.Mesh(rg,M(0x4d5560)); roof.position.y=3; roof.castShadow=true; g.add(roof);
+  const tower=new THREE.Mesh(new THREE.BoxGeometry(1.7,5.6,1.7),white); tower.position.set(0,2.8,-4.5); tower.castShadow=true; g.add(tower);
+  const spire=new THREE.Mesh(new THREE.ConeGeometry(1.15,3.2,4),M(0x4d5560)); spire.rotation.y=Math.PI/4; spire.position.set(0,7.2,-4.5); spire.castShadow=true; g.add(spire);
+  const crossV=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.9,0.12),bollM); crossV.position.set(0,9.2,-4.5); g.add(crossV);
+  const crossH=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.12,0.12),bollM); crossH.position.set(0,9.35,-4.5); g.add(crossH);
+  const belfry=new THREE.Mesh(new THREE.BoxGeometry(1.75,0.7,1.75),glass); belfry.position.set(0,4.9,-4.5); g.add(belfry);
+  const door=new THREE.Mesh(new THREE.BoxGeometry(1,1.8,0.08),M(0x6e4a2e)); door.position.set(0,0.9,-5.39); g.add(door);
+  for(let i=0;i<4;i++){[-2.54,2.54].forEach(x=>{const w=new THREE.Mesh(new THREE.BoxGeometry(0.08,1.7,0.6),glass); w.position.set(x,1.6,-2.4+i*1.7); g.add(w)})}
+  // reflection / memorial garden in front
+  const pad=new THREE.Mesh(new THREE.CylinderGeometry(2.4,2.4,0.08,36),M(0xd2ccbc)); pad.position.set(0,0.04,-8.2); pad.receiveShadow=true; g.add(pad);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(2.4,0.18,6,36),M(0x6d8f4a)); ring.rotation.x=Math.PI/2; ring.position.set(0,0.15,-8.2); g.add(ring);
+  const stone=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.9,0.3),M(0x4a4f3c)); stone.position.set(0,0.5,-8.2); g.add(stone);
+  [[-1.5,-7.2,0.5],[1.5,-7.2,-0.5]].forEach(q=>{const b=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.12,0.4),M(0x6e4a2e)); b.position.set(q[0],0.45,q[1]); b.rotation.y=q[2]; g.add(b)});
+  const walk=new THREE.Mesh(new THREE.PlaneGeometry(1.2,2),M(0xc4b48c)); walk.rotation.x=-Math.PI/2; walk.position.set(0,0.035,-6.1); g.add(walk);
+  scene.add(g); reg('chapel',g,[nave,roof,tower,spire],10);
+})();
+flat(1.6,9,0xc4b48c,-21,5,0.034);   // footpath: chapel garden -> Vann Hall / Event Center lawn
+
 // trees (seeded)
 let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
 const trunkM=M(0x5b4632), leafA=M(0x4f6b34), leafB=M(0x3e5a2c);
 function clear(x,z){
-  const zones=[[8,-50.9,4.5],[20,-41.5,5.5],[32.5,37,7],[-19,-41.7,4.5],[3,-43,3],[35.6,-26,3],[0,13,11],[-11,8,6],[11,8,6],[24,8,6],[12,37.8,5.5],[26,-31.9,3.5],[32.6,0,3.5],[30,-36.9,3.5],[18,-8,7],[-18,-10,9],[10,-27,6],[19.5,-24.5,5],[23,25,12],[-14,-26,11],[29,-24,9],[0,-30,4],[0,3,6],[-9,26,10],[-9,19,3],[6,24,7],[-21,18,7],[-35.5,-44.6,5],[-33,-33,9],[-26.8,-33,2]];
+  const zones=[[-24,14,8.5],[-21,5,2],[8,-50.9,4.5],[20,-41.5,5.5],[32.5,37,7],[-19,-41.7,4.5],[3,-43,3],[35.6,-26,3],[0,13,11],[-11,8,6],[11,8,6],[24,8,6],[12,37.8,5.5],[26,-31.9,3.5],[32.6,0,3.5],[30,-36.9,3.5],[18,-8,7],[-18,-10,9],[10,-27,6],[19.5,-24.5,5],[23,25,12],[-14,-26,11],[29,-24,9],[0,-30,4],[0,3,6],[-9,26,10],[-9,19,3],[6,24,7],[-21,18,7],[-35.5,-44.6,5],[-33,-33,9],[-26.8,-33,2]];
   const rr=Math.hypot(x,z); if(Math.abs(rr-37.2)<2.4)return false;
   for(const q of trailPts){if(Math.hypot(x-q[0],z-q[1])<2.2)return false}
   if(Math.abs(x)<12 && z<9)return false;          // view corridor: gate -> Chevron stays open
@@ -786,6 +814,7 @@ const TOUR=[
  {p:[12,W,34],l:[12,1.6,38.5],id:'shelter',m:'w',t:"Across the trail, the Pondside Pavilion for cookouts and fishing days."},
  {p:[2.5,W,34],l:[0,1.3,37],id:'play',m:'w',t:"Swing & Play: shaded porch swings for every age."},
  {p:[-4,W,21],l:[-9,1.7,26],id:'lodge',m:'w',t:"The Acknowledge Lodge: family suites downstairs, single rooms above."},
+ {p:[-21,W,4.5],l:[-24,3.2,15],id:'chapel',m:'w',t:"The Campus Chapel and its reflection garden: a quiet place for every faith."},
  {p:[-60,70,-75],l:[0,0,0],id:null,m:'f',t:"That's Acknowledge Campus. Every branch, every era, every veteran."}
 ];
 let tour=null, lastT=0;

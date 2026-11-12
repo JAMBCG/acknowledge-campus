@@ -43,6 +43,16 @@ body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px
 .tour-ctrl{display:flex;flex-wrap:wrap;gap:6px}
 .tour-ctrl button{font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;border:1px solid #6d7358;background:transparent;color:#f1eedf;padding:5px 9px;border-radius:3px;cursor:pointer}
 .tour-ctrl button:focus-visible{outline:2px solid #e3b85a;outline-offset:2px}
+.walkbox{position:absolute;left:50%;transform:translateX(-50%);top:58px;background:rgba(20,24,14,.86);color:#f1eedf;padding:8px 14px;border-radius:4px;text-align:center;pointer-events:auto;max-width:calc(100% - 32px)}
+.walkbox .w-k{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#e3b85a}
+.walkbox .w-n{font-family:var(--display);font-weight:800;font-size:22px;line-height:1.1}
+.walkbox .w-h{font-size:12px;opacity:.8}
+.walkpad{position:absolute;right:max(12px,env(safe-area-inset-right,0px));bottom:112px;display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,52px);gap:6px;touch-action:none;user-select:none;-webkit-user-select:none}
+.walkpad button{font-size:20px;border:1px solid #6d7358;background:rgba(20,24,14,.72);color:#f1eedf;border-radius:6px;cursor:pointer;touch-action:none}
+.walkpad button:active,.walkpad button.on{background:#8a6a1f}
+.walkpad .wp-f{grid-column:2;grid-row:1}.walkpad .wp-l{grid-column:1;grid-row:2}.walkpad .wp-b{grid-column:2;grid-row:2}.walkpad .wp-r{grid-column:3;grid-row:2}.walkpad .wp-run{grid-column:3;grid-row:1;font-size:12px;font-family:var(--display);font-weight:700;letter-spacing:.06em}
+.walkpad .wp-x{grid-column:1;grid-row:1;font-size:12px;font-family:var(--display);font-weight:700;letter-spacing:.06em}
+.stage.walking canvas{cursor:grab}
 .hud{position:absolute;top:12px;left:max(12px,env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:6px}
 .hud button,.panel button{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);
   background:var(--panel);color:var(--fg);padding:6px 10px;border-radius:3px;cursor:pointer}
@@ -100,6 +110,7 @@ h1{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;margi
       <button id="v-night" aria-pressed="false">Night</button>
       <button id="v-plaza" aria-pressed="false">Plaza</button>
       <button id="v-tour" aria-pressed="false">Drive &amp; walk tour</button>
+      <button id="v-walk" aria-pressed="false">Walk freely</button>
     </div>
     <div class="compass" id="compass" aria-label="Compass">
       <svg viewBox="0 0 80 80" width="72" height="72" aria-hidden="true">
@@ -123,12 +134,21 @@ h1{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;margi
         <button id="t-exit">Exit tour</button>
       </div>
     </div>
-    <div class="hint">Drag (or 1 finger) to rotate · scroll or pinch to zoom · right-drag (or 2 fingers) to pan · tap a building</div>
+    <div class="walkbox" id="walkbox" hidden aria-live="polite"><div class="w-k" id="walk-k">Walking</div><div class="w-n" id="walk-n">Acknowledge Campus</div><div class="w-h" id="walk-h">W/S or ↑/↓ to walk · A/D or ←/→ to turn · drag to look · Shift to jog · Esc to exit</div></div>
+    <div class="walkpad" id="walkpad" hidden>
+      <button class="wp-x" data-k="exit" aria-label="Exit walk">Exit</button>
+      <button class="wp-f" data-k="f" aria-label="Walk forward">▲</button>
+      <button class="wp-run" data-k="run" aria-label="Jog on or off" aria-pressed="false">Jog</button>
+      <button class="wp-l" data-k="l" aria-label="Turn left">◀</button>
+      <button class="wp-b" data-k="b" aria-label="Walk back">▼</button>
+      <button class="wp-r" data-k="r" aria-label="Turn right">▶</button>
+    </div>
+    <div class="hint" id="hint">Drag (or 1 finger) to rotate · scroll or pinch to zoom · right-drag (or 2 fingers) to pan · tap a building</div>
   </div>
 
   <aside class="panel">
     <div>
-      <div class="eyebrow">Concept model · v0.1 · not to construction scale</div>
+      <div class="eyebrow">Concept model · v0.2 · not to construction scale</div>
       <h1>Acknowledge Campus</h1>
       <p class="lede">A one-stop veterans campus near Houston for every branch: health, counseling, training, morale and events on one site, with a pond for fishing days.</p>
       <div class="mission"><div class="eyebrow">Our mission</div><p>Basic training turned civilians into service members, step by step. Acknowledge Campus reverses that process. With the same structure, teamwork and purpose, we help veterans of every branch and era, and their families, step back into civilian life with confidence, so every veteran knows their service is acknowledged.</p></div>
@@ -825,7 +845,7 @@ const tourbox=document.getElementById('tourbox'), tourstep=document.getElementBy
 const tb=document.getElementById('v-tour'), tp=document.getElementById('t-pause');
 const lookV=new THREE.Vector3(), tmpA=new THREE.Vector3(), tmpB=new THREE.Vector3();
 function showStop(i){const s=TOUR[i]; tourstep.textContent='Stop '+(i+1)+' of '+TOUR.length; tourtext.textContent=s.t; if(s.id)select(s.id,false)}
-function startTour(){controls.autoRotate=false; sb.setAttribute('aria-pressed','false'); anim=null;
+function startTour(){if(typeof stopWalk==='function')stopWalk(false); controls.autoRotate=false; sb.setAttribute('aria-pressed','false'); anim=null;
   tour={i:0,u:0,wait:4,paused:false}; controls.enabled=false; camera.near=0.05; camera.updateProjectionMatrix();
   camera.position.set(...TOUR[0].p); lookV.set(...TOUR[0].l); camera.lookAt(lookV);
   tourbox.hidden=false; labelsEl.classList.add('touring'); tb.setAttribute('aria-pressed','true'); tp.textContent='Pause'; lastT=performance.now(); showStop(0)}
@@ -851,6 +871,65 @@ document.getElementById('t-exit').onclick=()=>stopTour(true);
 canvas.addEventListener('pointerdown',()=>{if(tour&&!tour.paused){tour.paused=true;tp.textContent='Resume'}});
 const sb=document.getElementById('v-spin'); sb.onclick=()=>{const on=sb.getAttribute('aria-pressed')!=='true';sb.setAttribute('aria-pressed',on);controls.autoRotate=on;controls.autoRotateSpeed=0.6};
 
+
+// ---- Walk freely: first-person, user-controlled, eye level (~5.5 ft), with collision
+const EYE=0.55, WALK=1.6, JOG=4.2, TURN=1.7, R=0.35;
+let walk=null;
+const wbtn=document.getElementById('v-walk'), wbox=document.getElementById('walkbox'), wpad=document.getElementById('walkpad');
+const wk=document.getElementById('walk-k'), wn=document.getElementById('walk-n'), wh=document.getElementById('walk-h'), hint=document.getElementById('hint');
+const keys={}; const padHeld={f:0,b:0,l:0,r:0};
+const fwd=new THREE.Vector3(), wray=new THREE.Raycaster(), wo=new THREE.Vector3(), wd=new THREE.Vector3();
+function blocked(x,z,dx,dz){const len=Math.hypot(dx,dz); if(len<1e-6)return false; wd.set(dx/len,0,dz/len);
+  for(const h of [0.25,EYE]){wo.set(x,h,z); wray.set(wo,wd); wray.far=len+R; if(wray.intersectObjects(pick,false).length)return true}
+  const nx=x+dx, nz=z+dz; return Math.abs(nx)>SIDE/2+6 || nz<ZMIN-11 || nz>ZMAX-0.5}
+function startWalk(){stopTour(false); anim=null; controls.autoRotate=false; sb.setAttribute('aria-pressed','false');
+  walk={yaw:0,pitch:-0.03,run:false,near:null,last:performance.now()}; controls.enabled=false; camera.near=0.05; camera.updateProjectionMatrix();
+  camera.position.set(0,EYE,-42.5); // just inside the gatehouse, facing the campus (north)
+  wbtn.setAttribute('aria-pressed','true'); wbox.hidden=false; wpad.hidden=false; stage.classList.add('walking'); labelsEl.classList.add('touring');
+  hint.textContent='Walk mode · drag to look around · tap a building for details'; wk.textContent='You are at'; wn.textContent='The Gatehouse'; canvas.focus&&canvas.focus()}
+function stopWalk(fly=true){if(!walk)return; walk=null; controls.enabled=true; camera.near=1; camera.updateProjectionMatrix();
+  wbtn.setAttribute('aria-pressed','false'); wbox.hidden=true; wpad.hidden=true; stage.classList.remove('walking'); labelsEl.classList.remove('touring');
+  hint.textContent='Drag (or 1 finger) to rotate · scroll or pinch to zoom · right-drag (or 2 fingers) to pan · tap a building';
+  Object.keys(padHeld).forEach(k=>padHeld[k]=0);
+  controls.target.copy(camera.position).add(fwd); if(fly)flyTo(views.aerial[0].clone(),views.aerial[1].clone())}
+function stepWalk(){const now=performance.now(), dt=Math.min(0.1,(now-walk.last)/1000); walk.last=now;
+  const turn=(keys.ArrowLeft||keys.KeyA||padHeld.l?1:0)-(keys.ArrowRight||keys.KeyD||padHeld.r?1:0);
+  const mv=(keys.ArrowUp||keys.KeyW||padHeld.f?1:0)-(keys.ArrowDown||keys.KeyS||padHeld.b?1:0);
+  const strafe=(keys.KeyQ?1:0)-(keys.KeyE?1:0);
+  walk.yaw+=turn*TURN*dt;
+  const sp=(walk.run||keys.ShiftLeft||keys.ShiftRight?JOG:WALK)*dt;
+  let dx=(Math.sin(walk.yaw)*mv+Math.cos(walk.yaw)*strafe)*sp, dz=(Math.cos(walk.yaw)*mv-Math.sin(walk.yaw)*strafe)*sp;
+  const p=camera.position;
+  if(dx||dz){ if(!blocked(p.x,p.z,dx,dz)){p.x+=dx;p.z+=dz} else { if(!blocked(p.x,p.z,dx,0))p.x+=dx; else if(!blocked(p.x,p.z,0,dz))p.z+=dz } }
+  p.y=EYE+((dx||dz)&&!reduce?Math.sin(now/1000*(walk.run?11:7))*0.012:0);
+  fwd.set(Math.sin(walk.yaw)*Math.cos(walk.pitch),Math.sin(walk.pitch),Math.cos(walk.yaw)*Math.cos(walk.pitch));
+  controls.target.copy(p).add(fwd); camera.lookAt(controls.target);
+  // what's nearby
+  let best=null,bd=1e9; Object.values(items).forEach(it=>{if(!it.box){it.box=new THREE.Box3(); it.meshes.forEach(m=>it.box.expandByObject(m))}
+    const b=it.box, ex=Math.max(b.min.x-p.x,0,p.x-b.max.x), ez=Math.max(b.min.z-p.z,0,p.z-b.max.z), d=(ex||ez)?Math.hypot(ex,ez):-1+(b.max.x-b.min.x)*(b.max.z-b.min.z)/1e5;
+    if(b.max.x-b.min.x>30||b.max.z-b.min.z>30)return; // skip spread-out items (trail, swing stops, harvest stops)
+    if(d<bd){bd=d;best=it}});
+  const near=bd<5?best:null;
+  if(near!==walk.near){walk.near=near; if(near){wk.textContent=near.k; wn.textContent=near.name; select(near.id,false)} else {wk.textContent='Walking'; wn.textContent='Acknowledge Campus'}}}
+wbtn.onclick=()=>{walk?stopWalk():startWalk()};
+[...document.querySelectorAll('.hud button')].forEach(b=>{if(b!==wbtn&&b.id!=='v-night'&&b.id!=='v-labels')b.addEventListener('click',()=>stopWalk(false))});
+tb.addEventListener('click',()=>stopWalk(false),true);
+addEventListener('keydown',e=>{if(!walk)return; if(e.code==='Escape'){stopWalk();return}
+  if(/^(Arrow|Key[WASDQE]|Shift)/.test(e.code)){keys[e.code]=true; e.preventDefault()}});
+addEventListener('keyup',e=>{keys[e.code]=false});
+addEventListener('blur',()=>{for(const k in keys)keys[k]=false});
+let look=null;
+canvas.addEventListener('pointerdown',e=>{if(walk){look=[e.clientX,e.clientY]; canvas.setPointerCapture&&canvas.setPointerCapture(e.pointerId)}});
+canvas.addEventListener('pointermove',e=>{if(!walk||!look)return; const dx=e.clientX-look[0], dy=e.clientY-look[1]; look=[e.clientX,e.clientY];
+  walk.yaw-=dx*0.005; walk.pitch=Math.max(-0.9,Math.min(0.7,walk.pitch-dy*0.004))});
+addEventListener('pointerup',()=>{look=null});
+wpad.querySelectorAll('button').forEach(b=>{const k=b.dataset.k;
+  if(k==='exit'){b.onclick=()=>stopWalk();return}
+  if(k==='run'){b.onclick=()=>{if(!walk)return; walk.run=!walk.run; b.setAttribute('aria-pressed',walk.run); b.classList.toggle('on',walk.run)};return}
+  const on=e=>{e.preventDefault(); padHeld[k]=1; b.classList.add('on'); b.setPointerCapture&&b.setPointerCapture(e.pointerId)};
+  const off=()=>{padHeld[k]=0; b.classList.remove('on')};
+  b.addEventListener('pointerdown',on); b.addEventListener('pointerup',off); b.addEventListener('pointercancel',off); b.addEventListener('lostpointercapture',off);
+  b.addEventListener('contextmenu',e=>e.preventDefault())});
 camera.position.copy(views.aerial[0]); controls.target.copy(views.aerial[1]);
 
 // picking
@@ -872,7 +951,7 @@ function tick(){
   requestAnimationFrame(tick); clock+=0.016;
   if(anim&&!tour){anim.t=Math.min(1,anim.t+0.022);const e=1-Math.pow(1-anim.t,3);camera.position.lerpVectors(anim.p0,anim.p1,e);controls.target.lerpVectors(anim.t0,anim.t1,e);if(anim.t>=1)anim=null}
   if(!reduce){waves.forEach(f=>f.rotation.y=Math.sin(clock*2+f.userData.wave)*0.25);swings.forEach((w,i)=>{if(w.userData.plank)w.userData.plank.rotation.z=Math.sin(clock*0.9)*0.14;else w.rotation.x=Math.sin(clock*1.3+i)*0.18})}
-  if(tour)stepTour(); else controls.update(); renderer.render(scene,camera);
+  if(tour)stepTour(); else if(walk)stepWalk(); else controls.update(); renderer.render(scene,camera);
   {const dx=controls.target.x-camera.position.x, dz=controls.target.z-camera.position.z; rose.setAttribute('transform','rotate('+(Math.atan2(dx,dz)*180/Math.PI)+' 40 40)')}
   const w=stage.clientWidth,h=stage.clientHeight;
   Object.values(items).forEach(it=>{v.copy(centerOf(it));v.y+=it.labelH;v.project(camera);

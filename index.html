@@ -258,9 +258,9 @@ const DATA={
  clinic:{name:"Health & Wellness Center",k:"Health",size:"~90 × 60 ft",
    text:"Partner clinic space for screenings, telehealth and fitness so health care isn't another drive across Houston. Sits between the JD Event Center and the Campus Chapel, on the footpath to the chapel garden.",
    bullets:["Telehealth suites (VA partner)","Screening & wellness rooms","Gym and rehab space","Wheelchair accessible throughout"]},
- school:{name:"The Crosswalk",k:"Education · Civilian MOS",size:"~130 × 55 ft",
+ school:{name:"The Crosswalk",k:"Education · Civilian MOS",size:"~100 × 50 ft · 2 floors",
    text:"Every job code has a civilian address. The Crosswalk is where a veteran's MOS, rating or AFSC is matched to a civilian career and a credential, then turned into a job or a business. Training and certifications are lined up from DoD COOL (cool.osd.mil), which maps every enlisted job code in every branch to civilian occupations and credentials. Sits at a right angle to the Freeman Center around the Learning Commons courtyard.",
-   bullets:["Step 1 · Reception: Translate. Enter your MOS, rating, AFSC or designator; get matched civilian careers and credentials (DoD COOL as the base)","Step 2 · Tech School: Credential. Earn the matched certification in the trade labs (HVAC, electrical, IT, CDL and more)","Step 3 · Mission to Market. Business mindset in terms you already know: OPORD to business plan, METL to KPIs, AAR to lessons learned, logistics to P&L","Step 4 · First Duty Station: Launch. Employee track (SkillBridge, employer-sponsored seats) or Owner track (start your own business)","Graduation: placeholder, process to be designed","GI Bill classes via the Texas Veterans Commission; VR&E cohort space; testing room and study hall"]},
+   bullets:["Step 1 · Reception: Translate. Enter your MOS, rating, AFSC or designator; get matched civilian careers and credentials (DoD COOL as the base)","Step 2 · Tech School: Credential. Earn the matched certification in the trade labs (HVAC, electrical, IT, CDL and more)","Step 3 · Mission to Market. Business mindset in terms you already know: OPORD to business plan, METL to KPIs, AAR to lessons learned, logistics to P&L","Step 4 · First Duty Station: Launch. Employee track (SkillBridge, employer-sponsored seats) or Owner track (start your own business)","Graduation: placeholder, process to be designed","GI Bill classes via the Texas Veterans Commission; VR&E cohort space; testing room and study hall","Trade labs with roll-up doors on the ground floor; classrooms upstairs","Covered stadium-style ramp wraps the building to the second floor (no elevator to break down); space framed for a future elevator"]},
  commons:{name:"Learning Commons",k:"Courtyard",size:"~100 × 80 ft",
    text:"Shared courtyard between the Freeman Center and the Schoolhouse, where students take breaks, eat lunch and mix with each other between classes.",
    bullets:["Shaded picnic tables and benches","Shade sails and live oaks","Wi-Fi and charging posts","Room for graduation photos and cookouts"]},
@@ -427,7 +427,8 @@ swapModel('family','models/family-center.glb',{x:9.5,z:9,scale:11.5,rot:0.727+Ma
 building('clinic',{x:-25.5,z:6.5,w:9,d:6,h:2.4,color:0xc9c5b6,rot:-Math.PI/2});
 swapModel('clinic','models/health-wellness.glb',{x:-25.5,z:6.5,scale:8.8,rot:-Math.PI/2,labelH:3});
 flat(3.3,1.6,0xc4b48c,-22.4,6.5,0.034);   // H&W front walk -> chapel footpath
-building('school',{x:27,z:-1.5,w:11,d:6,h:2.4,color:0xb8a98a,rot:Math.PI/2});
+building('school',{x:27.6,z:-1.5,w:9.5,d:6,h:2.7,color:0xb8a98a,rot:Math.PI/2});
+swapModel('school','models/crosswalk.glb',{x:27.6,z:-1.5,scale:9.5,rot:-Math.PI/2,labelH:3.4});
 // Learning Commons: courtyard inside the Freeman / Schoolhouse L
 (function(){
   const g=new THREE.Group(), ms=[];
@@ -439,7 +440,7 @@ building('school',{x:27,z:-1.5,w:11,d:6,h:2.4,color:0xb8a98a,rot:Math.PI/2});
     [-0.5,0.5].forEach(o=>{const b=new THREE.Mesh(new THREE.BoxGeometry(1.3,0.06,0.22),wood); b.position.set(x,0.33,z+o); b.castShadow=true; g.add(b);});
     const leg=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.5,0.9),steel); leg.position.set(x,0.27,z); g.add(leg);
   });
-  [[22.3,-2.4],[22.3,0.2],[22.3,2.8]].forEach(([x,z])=>{const b=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.1,1.6),wood); b.position.set(x,0.45,z); b.castShadow=true; g.add(b);
+  [[21.4,-2.4],[21.4,0.2],[21.4,2.8]].forEach(([x,z])=>{const b=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.1,1.6),wood); b.position.set(x,0.45,z); b.castShadow=true; g.add(b);
     const bk=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.4,1.6),wood); bk.position.set(x+0.22,0.7,z); g.add(bk);});
   // shade sails
   const sail=new THREE.MeshLambertMaterial({color:0xd8c49a,side:THREE.DoubleSide});

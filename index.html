@@ -495,7 +495,9 @@ swapModel('pavilion','models/jd-event-center.glb',{x:-18,z:-10,scale:12,rot:Math
 // Flag faces drawn in the page: U.S. flag + service-branch color flags (branch names, no official seals)
 function flagTexture(i,f){
   const c=document.createElement('canvas'); c.width=380; c.height=228; const x=c.getContext('2d');
-  if(i===0){ const sh=228/13; for(let k=0;k<13;k++){x.fillStyle=k%2?'#ffffff':'#b22234';x.fillRect(0,k*sh,380,sh+1)}
+  if(i==='tx'){ x.fillStyle='#ffffff'; x.fillRect(0,0,380,114); x.fillStyle='#bf0a30'; x.fillRect(0,114,380,114); x.fillStyle='#002868'; x.fillRect(0,0,127,228);
+    x.fillStyle='#ffffff'; x.beginPath(); for(let p=0;p<10;p++){const a=-Math.PI/2+p*Math.PI/5, rr=p%2?17:44; x.lineTo(63.5+Math.cos(a)*rr,118+Math.sin(a)*rr)} x.fill();
+  } else if(i===0){ const sh=228/13; for(let k=0;k<13;k++){x.fillStyle=k%2?'#ffffff':'#b22234';x.fillRect(0,k*sh,380,sh+1)}
     x.fillStyle='#3c3b6e'; x.fillRect(0,0,152,sh*7); x.fillStyle='#fff';
     for(let r=0;r<9;r++)for(let k=0;k<(r%2?5:6);k++){const sx=(r%2?25:12.7)+k*25.3, sy=8.8+r*12.3; x.beginPath(); for(let p=0;p<10;p++){const a=-Math.PI/2+p*Math.PI/5, rr=p%2?2:4.6; x.lineTo(sx+Math.cos(a)*rr,sy+Math.sin(a)*rr)} x.fill()}
   } else {
@@ -520,8 +522,11 @@ const plazaLights=[], panels=[]; let wallMat, beam, signMat, signBackMat, honor=
     const center=i===0, a=(i-1)/6*Math.PI*2, r=center?0:2.4, x=Math.sin(a)*r, z=Math.cos(a)*r, h=center?6.5:4.8;
     const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.07,h,8),M(0xd9d9d9)); pole.position.set(x,h/2,z); g.add(pole);
     const fg=new THREE.PlaneGeometry(1.5,0.9,18,6); fg.translate(0.75,0,0);
-    const fl=new THREE.Mesh(fg,new THREE.MeshLambertMaterial({map:flagTexture(i,f),side:THREE.DoubleSide}));
-    fl.position.set(x+0.02,h-0.55,z); fl.castShadow=true; g.add(fl); fl.userData.wave=i; fl.userData.base=fg.attributes.position.array.slice();
+    const ftex=flagTexture(i,f);
+    const fl=new THREE.Mesh(fg,new THREE.MeshLambertMaterial({map:ftex,side:center?THREE.DoubleSide:THREE.FrontSide}));
+    fl.position.set(x+0.02,h-0.55,z); fl.castShadow=true; g.add(fl);
+    if(!center){ const bt=ftex.clone(); bt.wrapS=THREE.RepeatWrapping; bt.repeat.x=-1; bt.offset.x=1; bt.needsUpdate=true;
+      const back=new THREE.Mesh(fg,new THREE.MeshLambertMaterial({map:bt,side:THREE.BackSide})); back.position.copy(fl.position); g.add(back); } fl.userData.wave=i; fl.userData.base=fg.attributes.position.array.slice();
     const fin=new THREE.Mesh(new THREE.SphereGeometry(0.08,10,8),M(0xd8b45a)); fin.position.set(x,h+0.04,z); g.add(fin);
     const up=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.08,10),bollM); up.position.set(x,0.16,z-0.35); g.add(up);
     meshes.push(pole); waves.push(fl);
@@ -754,12 +759,15 @@ const HARVEST=[
   const stone=new THREE.Mesh(new THREE.BoxGeometry(1.8,0.8,0.5),M(0x4a4f3c)); stone.position.set(0,0.6,-0.6); stone.castShadow=true; g.add(stone);
   [[-1.2,0.8],[1.2,0.8],[0,1.6]].forEach(p=>{const t=new THREE.Mesh(new THREE.IcosahedronGeometry(0.7,0),M(0x4f6b34));t.position.set(p[0],1.1,p[1]);t.castShadow=true;g.add(t)});
   // U.S. flag on the island, in front of the Comfort Zone porch
-  const fh=4.6, fpole=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.065,fh,10),M(0xd9d9d9)); fpole.position.set(0,0.25+fh/2,0.6); fpole.castShadow=true; g.add(fpole);
-  const fball=new THREE.Mesh(new THREE.SphereGeometry(0.08,10,8),M(0xd8b45a)); fball.position.set(0,0.25+fh+0.05,0.6); g.add(fball);
-  const fgeo=new THREE.PlaneGeometry(1.3,0.78,18,6); fgeo.translate(0.65,0,0);
-  const usf=new THREE.Mesh(fgeo,new THREE.MeshLambertMaterial({map:flagTexture(0,[0,0]),side:THREE.DoubleSide})); usf.position.set(0.02,0.25+fh-0.45,0.6); usf.castShadow=true; g.add(usf);
-  usf.userData.wave=0.7; usf.userData.base=fgeo.attributes.position.array.slice(); waves.push(usf);
-  const fup=new THREE.PointLight(0xffe0a8,0,10,2); fup.position.set(0,0.5,1.2); g.add(fup); plazaLights.push(fup);
+  const fh=4.6;
+  [[0.7,0,0.7],[-0.9,'tx',1.3]].forEach(([px,kind,wv])=>{
+    const fpole=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.065,fh,10),M(0xd9d9d9)); fpole.position.set(px,0.25+fh/2,0.6); fpole.castShadow=true; g.add(fpole);
+    const fball=new THREE.Mesh(new THREE.SphereGeometry(0.08,10,8),M(0xd8b45a)); fball.position.set(px,0.25+fh+0.05,0.6); g.add(fball);
+    const fgeo=new THREE.PlaneGeometry(1.3,0.78,18,6); fgeo.translate(0.65,0,0);
+    const fm=new THREE.Mesh(fgeo,new THREE.MeshLambertMaterial({map:flagTexture(kind,[0,0]),side:THREE.DoubleSide})); fm.position.set(px+0.02,0.25+fh-0.45,0.6); fm.castShadow=true; g.add(fm);
+    fm.userData.wave=wv; fm.userData.base=fgeo.attributes.position.array.slice(); waves.push(fm);
+  });
+  const fup=new THREE.PointLight(0xffe0a8,0,10,2); fup.position.set(0,0.5,1.4); g.add(fup); plazaLights.push(fup);
   scene.add(g); reg('circle',g,[ring,isl],1.4);
   flat(4,4,0x6b6a66,0,-3,0.033);
 })();

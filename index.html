@@ -366,6 +366,44 @@ function swapModel(id,url,o){
     if(current===id) select(id,false);
   });
 }
+// Props: load one GLB, normalize it (long side along Z, sitting on y=0, centered), then hand back a mesh factory
+const propCache={};
+function loadProp(url,cb){
+  if(!THREE.GLTFLoader) return;
+  if(propCache[url]){ propCache[url].then(cb); return; }
+  propCache[url]=new Promise(res=>{
+    new THREE.GLTFLoader().load(url,gltf=>{
+      gltf.scene.updateMatrixWorld(true);
+      let geo=null, map=null;
+      gltf.scene.traverse(m=>{ if(m.isMesh && !geo){ geo=m.geometry.clone(); geo.applyMatrix4(m.matrixWorld); map=m.material.map; } });
+      if(!geo) return;
+      geo.computeBoundingBox(); let b=geo.boundingBox;
+      if(b.max.x-b.min.x > b.max.z-b.min.z){ geo.rotateY(Math.PI/2); geo.computeBoundingBox(); b=geo.boundingBox; }
+      const c=b.getCenter(new THREE.Vector3()); geo.translate(-c.x,-b.min.y,-c.z);
+      geo.computeBoundingBox(); geo.computeVertexNormals();
+      if(map) map.encoding=THREE.LinearEncoding;
+      const mat=geo.attributes.color? new THREE.MeshLambertMaterial({vertexColors:true}) : new THREE.MeshLambertMaterial({map,color:0xffffff});
+      const size=geo.boundingBox.getSize(new THREE.Vector3());
+      res({geo,mat,size});
+    });
+  });
+  propCache[url].then(cb);
+}
+// place copies: list of {x,z,ry,len|h,parent?,y?}; scale by length (Z) or by height
+function placeProp(url,list,hide,o){
+  o=o||{};
+  loadProp(url,({geo,mat,size})=>{
+    (hide||[]).forEach(m=>{ m.visible=false; });
+    list.forEach(q=>{
+      const m=new THREE.Mesh(geo,mat);
+      const s=q.h? q.h/size.y : q.len/size.z;
+      m.scale.set(s,(q.hs||1)*s,s); m.position.set(q.x,q.y||0,q.z); m.rotation.y=q.ry||0;
+      m.castShadow=true; m.receiveShadow=!!o.receive;
+      (q.parent||scene).add(m);
+      if(o.pick){ m.userData.id=o.pick; pick.push(m); items[o.pick].meshes.push(m); items[o.pick].base.push(0); items[o.pick].box=null; }
+    });
+  });
+}
 swapModel('comfort','models/comfort-zone.glb',{x:0,z:15,scale:9.5,rot:Math.PI,labelH:3.8});
 // Chevron wings: open toward the gate like rank stripes
 function wing(id,cx,cz,len,dep,h,theta,color){
@@ -460,6 +498,7 @@ const plazaLights=[], panels=[]; let wallMat, beam, signMat;
   const bank=new THREE.Mesh(new THREE.ShapeGeometry(shape),M(0x8a7a55)); bank.rotation.x=-Math.PI/2; bank.scale.set(1.08,1.1,1); bank.position.y=0.045; g.add(bank);
   const dock=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.25,6),M(0x8b6b45)); dock.position.set(-6,0.3,-2.5); dock.rotation.y=0.6; dock.castShadow=true; g.add(dock);
   scene.add(g); reg('pond',g,[water,dock],2.5);
+  placeProp('models/fishing-dock.glb',[{x:-6,y:0.02,z:-2.5,ry:0.6,len:6.6,parent:g}],[dock]);
 })();
 
 // trail loop
@@ -481,8 +520,10 @@ const plazaLights=[], panels=[]; let wallMat, beam, signMat;
   const vanM=M(0xf2f2ee), busM=M(0xe8e1c8);
   [[-20,-24],[-17.8,-28.8],[-11.2,-24]].forEach(p=>{const c=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.2,3.2),M(0x4d6680));c.position.set(p[0],0.6,p[1]);c.castShadow=true;scene.add(c)});
   // vans outside motor pool
-  for(let i=0;i<3;i++){const v=new THREE.Mesh(new THREE.BoxGeometry(1.8,2,4.4),vanM);v.position.set(24.5+i*2.7,1,-21.5);v.castShadow=true;scene.add(v)}
+  const vanOld=[];
+  for(let i=0;i<3;i++){const v=new THREE.Mesh(new THREE.BoxGeometry(1.8,2,4.4),vanM);v.position.set(24.5+i*2.7,1,-21.5);v.castShadow=true;scene.add(v);vanOld.push(v)}
   const bus=new THREE.Mesh(new THREE.BoxGeometry(2.4,2.6,7),busM); bus.position.set(35.6,1.3,-26); bus.castShadow=true; scene.add(bus);
+  placeProp('models/van.glb',[0,1,2].map(i=>({x:24.5+i*2.7,z:-21.5,len:4.4})).concat([{x:35.6,z:-26,len:7,hs:0.75}]),vanOld.concat([bus]));
 })();
 
 // ---- Acknowledge Lodge (family suites ground floor, singles above)
@@ -523,12 +564,13 @@ const plazaLights=[], panels=[]; let wallMat, beam, signMat;
 (function(){
   const g=new THREE.Group(); g.position.set(-33,0,-33);
   const gravel=new THREE.Mesh(new THREE.BoxGeometry(10,0.06,10),M(0xa39c88)); gravel.position.y=0.03; gravel.receiveShadow=true; g.add(gravel);
-  const rvM=M(0xe9e6dc), stripe=M(0x56707f);
+  const rvM=M(0xe9e6dc), stripe=M(0x56707f), rvOld=[], rvSpots=[];
   for(let i=0;i<6;i++){const x=-3.6+(i%3)*3.6, z=i<3?-2.4:2.4;
     const rv=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.6,4),rvM);rv.position.set(x,0.85,z);rv.castShadow=true;g.add(rv);
     const s=new THREE.Mesh(new THREE.BoxGeometry(1.42,0.18,4.02),stripe);s.position.set(x,0.9,z);g.add(s);
-    const hk=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.5,0.25),M(0x4a4a44));hk.position.set(x+1,0.25,z);g.add(hk)}
+    const hk=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.5,0.25),M(0x4a4a44));hk.position.set(x+1,0.25,z);g.add(hk); rvOld.push(rv,s,hk); rvSpots.push({x,z,len:4.4,parent:g,ry:i<3?0:Math.PI})}
   scene.add(g); reg('rv',g,[gravel],2.4);
+  placeProp('models/rv-trailer.glb',rvSpots,rvOld);
   flat(37,3,0x6b6a66,-20,-38.3,0.032);   // RV road: entrance drive -> RV loop (inside the gate)
   flat(2.5,12,0xa39c88,-39.2,-33,0.031); // RV loop, east side
   flat(13,2.5,0xa39c88,-33,-26.8,0.031); // RV loop, north side
@@ -548,6 +590,7 @@ const plazaLights=[], panels=[]; let wallMat, beam, signMat;
   const gh=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,2.6,16,1,false,0,Math.PI),new THREE.MeshLambertMaterial({color:0xdfeee8,transparent:true,opacity:0.55,side:THREE.DoubleSide}));
   gh.rotation.z=Math.PI/2; gh.rotation.y=Math.PI/2; gh.position.set(3.2,0,1.6); g.add(gh);
   scene.add(g); reg('garden',g,[pad,gh],2);
+  placeProp('models/greenhouse.glb',[{x:3.2,z:1.6,ry:Math.PI/2,len:3.2,parent:g}],[gh]);
 })();
 
 // ---- Harvest stops on the trail: bench + basket stand + fruit plants, set just outside the path
@@ -607,8 +650,10 @@ const swings=[];
     const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=-a+Math.PI/2; if(!first)first=g;
     const pad=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.2,0.06,24),M(0xc4b48c)); pad.position.y=0.04; g.add(pad);
     const wood=M(0x6e4a2e);
-    [[-1.8,-0.8],[1.8,-0.8],[-1.8,0.8],[1.8,0.8]].forEach(p=>{const post=new THREE.Mesh(new THREE.BoxGeometry(0.22,2.6,0.22),wood);post.position.set(p[0],1.3,p[1]);post.castShadow=true;g.add(post)});
-    const top=new THREE.Mesh(new THREE.BoxGeometry(4.2,0.25,2.2),wood); top.position.y=2.7; top.castShadow=true; g.add(top);
+    const frame=[];
+    [[-1.8,-0.8],[1.8,-0.8],[-1.8,0.8],[1.8,0.8]].forEach(p=>{const post=new THREE.Mesh(new THREE.BoxGeometry(0.22,2.6,0.22),wood);post.position.set(p[0],1.3,p[1]);post.castShadow=true;g.add(post);frame.push(post)});
+    const top=new THREE.Mesh(new THREE.BoxGeometry(4.2,0.25,2.2),wood); top.position.y=2.7; top.castShadow=true; g.add(top); frame.push(top);
+    placeProp('models/swing-pergola.glb',[{x:0,z:0,ry:Math.PI/2,len:4.4,parent:g}],frame);
     [-0.9,0.9].forEach(sx=>{const sw=new THREE.Group(); sw.position.set(sx,2.55,0);
       const seat=new THREE.Mesh(new THREE.BoxGeometry(1.3,0.1,0.5),M(0x8b6b45)); seat.position.y=-1.95; sw.add(seat);
       const back=new THREE.Mesh(new THREE.BoxGeometry(1.3,0.5,0.08),M(0x8b6b45)); back.position.set(0,-1.7,0.25); sw.add(back);
@@ -639,15 +684,16 @@ const swings=[];
   const roof=new THREE.Mesh(new THREE.BoxGeometry(9,0.15,3),roofMat); roof.position.y=2.2; roof.castShadow=true; g.add(roof);
   [[-4.3,-1.3],[4.3,-1.3],[-4.3,1.3],[4.3,1.3]].forEach(p=>{const po=new THREE.Mesh(new THREE.BoxGeometry(0.15,2.2,0.15),M(0x6c6c66));po.position.set(p[0],1.1,p[1]);g.add(po)});
   panel(g,8.6,2.8,0,2.35,0,-0.1);
-  const body=M(0xf2f0ea), dark=M(0x2a2a2a), seat=M(0x6b3a2a), meshes=[roof];
+  const body=M(0xf2f0ea), dark=M(0x2a2a2a), seat=M(0x6b3a2a), meshes=[roof], cartOld=[], cartSpots=[];
   for(let i=0;i<4;i++){const c=new THREE.Group(); c.position.set(-3.3+i*2.2,0,0.1);
     const b=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.45,1.9),body); b.position.y=0.45; b.castShadow=true; c.add(b);
     const st=new THREE.Mesh(new THREE.BoxGeometry(1,0.35,0.55),seat); st.position.set(0,0.85,0.2); c.add(st);
     const tp=new THREE.Mesh(new THREE.BoxGeometry(1.15,0.06,1.3),body); tp.position.set(0,1.55,0.05); c.add(tp);
     [[-0.5,-0.55],[0.5,-0.55],[-0.5,0.65],[0.5,0.65]].forEach(q=>{const po=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.7,4),dark);po.position.set(q[0],1.2,q[1]);c.add(po);
       const wh=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.12,10),dark);wh.rotation.z=Math.PI/2;wh.position.set(q[0]*1.1,0.2,q[1]*1.05);c.add(wh)});
-    g.add(c); meshes.push(b)}
+    g.add(c); meshes.push(b); cartOld.push(c); cartSpots.push({x:-3.3+i*2.2,z:0.1,len:2.1,parent:g})}
   scene.add(g);
+  placeProp('models/golf-cart.glb',cartSpots,cartOld);
   meshes.forEach(m=>{m.userData.id='motor';pick.push(m);items.motor.meshes.push(m);items.motor.base.push(0)});
   items.motor.keep=meshes;
   swapModel('motor','models/cw-rally-point.glb',{x:26,z:-25.5,scale:7,rot:0});
@@ -799,9 +845,27 @@ function clear(x,z){
   return !zones.some(q=>Math.hypot(x-q[0],z-q[1])<q[2]) && Math.abs(x)<SIDE/2-1.5 && z>ZMIN+1.5 && z<ZMAX-1.5;
 }
 let placed=0;
+const treeSpots=[], treeOld=[];
 while(placed<120){const x=(rnd()-0.5)*SIDE,z=ZMIN+rnd()*DEPTH; if(!clear(x,z))continue; placed++;
   const s=0.7+rnd()*0.8, t=new THREE.Mesh(new THREE.CylinderGeometry(0.15*s,0.22*s,1.4*s,6),trunkM); t.position.set(x,0.7*s,z); t.castShadow=true; scene.add(t);
-  const l=new THREE.Mesh(new THREE.IcosahedronGeometry(1.4*s,0),rnd()>.5?leafA:leafB); l.position.set(x,2.1*s,z); l.castShadow=true; scene.add(l);}
+  const l=new THREE.Mesh(new THREE.IcosahedronGeometry(1.4*s,0),rnd()>.5?leafA:leafB); l.position.set(x,2.1*s,z); l.castShadow=true; scene.add(l);
+  treeOld.push(t,l); treeSpots.push({x,z,s,ry:Math.abs(x*12.9898+z*78.233)%6.283,elm:Math.sin(x*3.1+z*7.7)>0.35});}
+// Real trees (Krea): live oaks + cedar elms, drawn as instanced copies
+(function(){
+  if(!THREE.GLTFLoader) return;
+  let loaded=0; const kinds={};
+  const done=()=>{ if(++loaded<2) return;
+    treeOld.forEach(m=>scene.remove(m));
+    [['oak',false,3.4],['elm',true,4.3]].forEach(([k,isElm,H])=>{
+      const spots=treeSpots.filter(q=>q.elm===isElm), d=kinds[k]; if(!spots.length) return;
+      const im=new THREE.InstancedMesh(d.geo,d.mat,spots.length), m4=new THREE.Matrix4(), q4=new THREE.Quaternion(), e=new THREE.Euler();
+      spots.forEach((q,i)=>{ const sc=H*q.s/d.size.y; e.set(0,q.ry,0); q4.setFromEuler(e); m4.compose(new THREE.Vector3(q.x,0,q.z),q4,new THREE.Vector3(sc,sc,sc)); im.setMatrixAt(i,m4); });
+      im.castShadow=true; scene.add(im);
+    });
+  };
+  loadProp('models/tree-live-oak.glb',d=>{kinds.oak=d;done();});
+  loadProp('models/tree-cedar-elm.glb',d=>{kinds.elm=d;done();});
+})();
 
 // sign at the gate
 // Entrance monument sign: left of the drive as you turn in from the main road

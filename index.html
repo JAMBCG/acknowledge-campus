@@ -348,6 +348,7 @@ function swapModel(id,url,o){
       const map=m.material.map; if(map) map.encoding=THREE.LinearEncoding;
       m.material=new THREE.MeshLambertMaterial({map,color:0xffffff});
       m.castShadow=m.receiveShadow=true; meshes.push(m); });
+    if(o.preRot) root.rotation.y=o.preRot;
     const box=new THREE.Box3().setFromObject(root), c=box.getCenter(new THREE.Vector3());
     if(o.center===false) root.position.set(0,-box.min.y,0); else root.position.set(-c.x,-box.min.y,-c.z);
     const holder=new THREE.Group(); holder.add(root);
@@ -375,6 +376,7 @@ function wing(id,cx,cz,len,dep,h,theta,color){
 }
 wing('hall',-9.5,9,12.5,5.5,3,2.414,0xb9ad91);
 wing('family',9.5,9,12.5,5.5,3,0.727,0xc2b48f);
+swapModel('hall','models/vann-hall.glb',{x:-9.5,z:9,scale:11.5,rot:2.414,preRot:0.6196,labelH:3.2});
 building('clinic',{x:24,z:8,w:9,d:6,h:2.4,color:0xc9c5b6});
 building('training',{x:18,z:-8,w:10,d:6,h:2.4,color:0x9fa58c});
 building('motor',{x:29,z:-26,w:10,d:5,h:2.2,color:0x7d7a6e});

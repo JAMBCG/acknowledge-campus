@@ -379,7 +379,9 @@ wing('family',9.5,9,12.5,5.5,3,0.727,0xc2b48f);
 swapModel('hall','models/vann-hall.glb',{x:-9.5,z:9,scale:11.5,rot:2.414,preRot:0.6196,labelH:3.2});
 swapModel('family','models/family-center.glb',{x:9.5,z:9,scale:11.5,rot:0.727+Math.PI,labelH:3.2});
 building('clinic',{x:24,z:8,w:9,d:6,h:2.4,color:0xc9c5b6});
+swapModel('clinic','models/health-wellness.glb',{x:24,z:8,scale:8.8,rot:0,labelH:3});
 building('training',{x:18,z:-8,w:10,d:6,h:2.4,color:0x9fa58c});
+swapModel('training','models/freeman-center.glb',{x:18,z:-7,scale:9.5,rot:0,preRot:-0.4887,labelH:3});
 building('motor',{x:29,z:-26,w:10,d:5,h:2.2,color:0x7d7a6e});
 panel(items.motor.group,8.5,3.6,0,2.75,0,-0.12);
 // Rally Point volunteer HQ (2 stories, future USO / partner suite upstairs)
@@ -396,6 +398,7 @@ panel(items.motor.group,8.5,3.6,0,2.75,0,-0.12);
 
 // JD Event Center (enclosed) + Pondside Pavilion (open)
 building('pavilion',{x:-18,z:-10,w:12,d:8,h:3.4,color:0x9a8a6e,pitch:2.4,porch:true,rot:Math.PI});
+swapModel('pavilion','models/jd-event-center.glb',{x:-18,z:-10,scale:12,rot:Math.PI,labelH:4.2});
 (function(){
   const g=new THREE.Group(); g.position.set(12,0,37.8);
   const roof=new THREE.Mesh(new THREE.CylinderGeometry(0.01,5.6,1.8,4),M(0x6e4a2e)); roof.rotation.y=Math.PI/4; roof.scale.set(1.05,1,0.6); roof.position.y=3.2; roof.castShadow=true; g.add(roof);
@@ -496,6 +499,7 @@ const plazaLights=[], panels=[]; let wallMat, beam, signMat;
     const div=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.7,1.6),M(0xb9ad91));div.position.set(x+0.82,0.35,-D/2-0.85);g.add(div)}
   panel(g,W*0.85,D*0.6,0,F*3+0.55,0,-0.15);
   scene.add(g); reg('lodge',g,[ground,upper],F*3+1.5);
+  swapModel('lodge','models/acknowledge-lodge.glb',{x:-9,z:26,scale:13.3,rot:Math.PI,labelH:4.6});
 })();
 
 // ---- Dog park

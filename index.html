@@ -640,6 +640,14 @@ const plazaLights=[], panels=[]; let wallMat, beam, signMat, honor=null;
 })();
 
 // ---- Harvest stops on the trail: bench + basket stand + fruit plants, set just outside the path
+const harvestSpots=[];
+const HARVEST=[
+ {form:'citrus', title:'Citrus',            kinds:['Satsuma (Owari) · Meyer lemon','Kumquat'], ripe:'NOV–JAN'},
+ {form:'fig',    title:'Figs',              kinds:['Celeste','Texas Everbearing'],            ripe:'JUN–AUG'},
+ {form:'berry',  title:'Blackberries',      kinds:['Thornless Arapaho · Natchez','Trellis rows'], ripe:'MAY–JUN'},
+ {form:'orchard',title:'Persimmon & Pear',  kinds:['Fuyu persimmon · Jujube','Kieffer / Orient pear'], ripe:'AUG–NOV'},
+ {form:'arbor',  title:'Muscadine Arbor',   kinds:['Muscadine grapes','Shade + fruit'],       ripe:'AUG–SEP'},
+ {form:'pom',    title:'Pomegranate & Loquat', kinds:['Pomegranate (Sep–Oct)','Loquat (Mar–Apr)'], ripe:'MAR–APR · SEP–OCT'}];
 (function(){
   const meshes=[], g=new THREE.Group();
   const fruitCols=[0xf29f05,0x6b3e75,0x2b2140,0xf2a37a,0x5a2d5e,0xc0392b];
@@ -652,11 +660,39 @@ const plazaLights=[], panels=[]; let wallMat, beam, signMat, honor=null;
     // basket stand with 3 baskets
     const stand=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.9,0.5),M(0x8b6b45)); stand.position.set(-1.05,0.45,-0.2); s.add(stand);
     for(let k=0;k<2;k++){const bk=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.15,0.2,10),M(0xc9a66b));bk.position.set(-1.2+k*0.3,1,-0.2);s.add(bk)}
-    // fruit plants around the stop
-    for(let k=0;k<3;k++){const px=0.9+k*0.2, pz=-0.9+k*0.9;
-      const t=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.12,0.9,6),M(0x5b4632));t.position.set(px+0.6,0.45,pz-0.4);s.add(t);
-      const l=new THREE.Mesh(new THREE.IcosahedronGeometry(0.75,1),M(0x58803a));l.position.set(px+0.6,1.3,pz-0.4);l.castShadow=true;s.add(l);
-      for(let f=0;f<4;f++){const fr=new THREE.Mesh(new THREE.SphereGeometry(0.1,6,6),M(fruitCols[i]));const th=f*1.6+k;fr.position.set(px+0.6+Math.cos(th)*0.6,1.2+Math.sin(f)*0.25,pz-0.4+Math.sin(th)*0.6);s.add(fr)}}
+    // fruit plants: each stop gets its own plant form, fruit color and an ID sign
+    const HS=HARVEST[i], fm=c=>M(c), add=(m,x,y,z)=>{m.position.set(x,y,z);m.castShadow=true;s.add(m);return m};
+    const fruit=(cols,cx,cy,cz,rad,n,sz)=>{for(let f=0;f<n;f++){const th=f*2.399, ph=Math.acos(1-2*((f+0.5)/n)*0.8);
+      add(new THREE.Mesh(new THREE.SphereGeometry(sz,7,6),fm(cols[f%cols.length])),cx+Math.cos(th)*Math.sin(ph)*rad,cy+Math.cos(ph)*rad*0.7,cz+Math.sin(th)*Math.sin(ph)*rad)}};
+    const tree=(x,z,h,r,leaf,cols,n,sz,squash)=>{add(new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.11,h,6),fm(0x5b4632)),x,h/2,z);
+      const c=add(new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),fm(leaf)),x,h+r*0.6,z); c.scale.y=squash||0.85; fruit(cols,x,h+r*0.6,z,r*1.02,n,sz)};
+    if(HS.form==='citrus'){ tree(1.3,-1.0,0.7,0.55,0x2f6b2a,[0xf28c1b,0xf28c1b,0xf5d33a],14,0.075); tree(1.9,0.2,0.6,0.5,0x2f6b2a,[0xf5d33a],10,0.07); tree(1.0,0.9,0.55,0.42,0x356f2c,[0xf07d14],10,0.06); }
+    if(HS.form==='fig'){ [[1.4,-0.7],[1.6,0.8]].forEach(q=>{ for(let k=0;k<3;k++) add(new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.07,0.9,5),fm(0x7a6a58)),q[0]+(k-1)*0.15,0.45,q[1]);
+      const c=add(new THREE.Mesh(new THREE.DodecahedronGeometry(0.75,0),fm(0x4c7a2e)),q[0],1.15,q[1]); c.scale.set(1.25,0.7,1.25); fruit([0x5a2d4a,0x6e3b52],q[0],1.15,q[1],0.85,12,0.08)}); }
+    if(HS.form==='berry'){ for(let r=0;r<2;r++){const z=-0.9+r*1.3; [0.8,2.4].forEach(x=>add(new THREE.Mesh(new THREE.BoxGeometry(0.08,1.1,0.08),fm(0x6e4a2e)),x,0.55,z));
+      add(new THREE.Mesh(new THREE.BoxGeometry(1.6,0.015,0.015),fm(0x999999)),1.6,0.95,z);
+      for(let k=0;k<5;k++){const b=add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.32,0),fm(0x3f6e2a)),0.95+k*0.32,0.5,z); b.scale.y=1.3; fruit([0x1d1424,0x2b1f33,0x8a1c2b],0.95+k*0.32,0.55,z,0.3,6,0.05)}} }
+    if(HS.form==='orchard'){ tree(1.3,-1.0,1.0,0.6,0x5f7f33,[0xf2832b],12,0.085); tree(1.9,0.4,1.1,0.55,0x4f7a35,[0x9bbf45,0xb8c84a],10,0.08,1.2); tree(0.9,1.1,0.8,0.45,0x5a7a2e,[0x9c2f22],12,0.05); }
+    if(HS.form==='arbor'){ [[0.8,-1.2],[2.6,-1.2],[0.8,1.0],[2.6,1.0]].forEach(q=>add(new THREE.Mesh(new THREE.BoxGeometry(0.12,1.6,0.12),fm(0x6e4a2e)),q[0],0.8,q[1]));
+      for(let k=0;k<5;k++) add(new THREE.Mesh(new THREE.BoxGeometry(0.08,0.08,2.4),fm(0x7a5536)),0.8+k*0.45,1.62,-0.1);
+      for(let k=0;k<8;k++){const v=add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.5,0),fm(k%2?0x4c7a2e:0x5a8a34)),1.05+(k%2)*1.25,1.78,-1.0+Math.floor(k/2)*0.6); v.scale.set(1.1,0.35,0.9)}
+      for(let k=0;k<9;k++){const cx=0.95+(k%3)*0.75, cz=-0.9+Math.floor(k/3)*0.75; for(let f=0;f<4;f++) add(new THREE.Mesh(new THREE.SphereGeometry(0.055,6,5),fm(0x3b1f4a)),cx+(f%2)*0.06,1.52-f*0.06,cz+(f>1?0.06:0))}}
+    if(HS.form==='pom'){ [[1.3,-0.9],[1.7,0.7]].forEach((q,j)=>{ for(let k=0;k<4;k++) add(new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.05,0.8,5),fm(0x6a5442)),q[0]+Math.cos(k*1.6)*0.15,0.4,q[1]+Math.sin(k*1.6)*0.15);
+      const c=add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.6,1),fm(j?0x2f5f2a:0x4a7a30)),q[0],1.05,q[1]); c.scale.y=0.9; fruit(j?[0xe9a23b,0xf0b44a]:[0xb3202a,0xc8323a],q[0],1.05,q[1],0.62,j?14:10,j?0.06:0.1)}); }
+    // ID marker: cedar post + plaque (readable from both sides)
+    add(new THREE.Mesh(new THREE.BoxGeometry(0.12,1.1,0.12),fm(0x6e4a2e)),0.2,0.55,1.35);
+    const sc=document.createElement('canvas'); sc.width=360; sc.height=240; const sx=sc.getContext('2d');
+    const drawSign=()=>{ sx.fillStyle='#2f3527'; sx.fillRect(0,0,360,240); sx.strokeStyle='#d9b56a'; sx.lineWidth=6; sx.strokeRect(6,6,348,228);
+      sx.fillStyle='#d9b56a'; sx.textAlign='center'; sx.font='700 24px "Saira Condensed","Arial Narrow",Arial,sans-serif'; sx.fillText('HARVEST STOP '+(i+1),180,44);
+      sx.fillStyle='#ffffff'; sx.font='800 '+(HS.title.length>16?28:38)+'px "Saira Condensed","Arial Narrow",Arial,sans-serif'; sx.fillText(HS.title.toUpperCase(),180,94);
+      sx.fillStyle='#cfd6c4'; sx.font='500 21px "Saira Condensed","Arial Narrow",Arial,sans-serif'; HS.kinds.forEach((t,k)=>sx.fillText(t,180,130+k*25));
+      sx.fillStyle='#d9b56a'; sx.font='700 22px "Saira Condensed","Arial Narrow",Arial,sans-serif'; sx.fillText('RIPE '+HS.ripe+' · PICK · SHARE · LEAVE SOME',180,214); };
+    drawSign(); const st=new THREE.CanvasTexture(sc);
+    if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{drawSign();st.needsUpdate=true});
+    const pm=new THREE.MeshLambertMaterial({map:st});
+    const pf=add(new THREE.Mesh(new THREE.PlaneGeometry(0.9,0.6),pm),0.2,1.2,1.42); const pb=add(new THREE.Mesh(new THREE.PlaneGeometry(0.9,0.6),pm),0.2,1.2,1.28); pb.rotation.y=Math.PI;
+    add(new THREE.Mesh(new THREE.BoxGeometry(0.96,0.66,0.1),fm(0x5a3d26)),0.2,1.2,1.35);
+    harvestSpots.push({x,z,n:i+1,title:HS.title,ripe:HS.ripe});
     g.add(s); meshes.push(pad,stand,bench);
   });
   scene.add(g); reg('stops',g,meshes,3);
@@ -910,7 +946,7 @@ while(placed<120){const x=(rnd()-0.5)*SIDE,z=ZMIN+rnd()*DEPTH; if(!clear(x,z))co
   const done=()=>{ if(++loaded<2) return;
     treeOld.forEach(m=>scene.remove(m));
     [['oak',false,3.4],['elm',true,4.3]].forEach(([k,isElm,H])=>{
-      const spots=treeSpots.filter(q=>q.elm===isElm), d=kinds[k]; if(!spots.length) return;
+      const spots=treeSpots.filter(q=>q.elm===isElm && !harvestSpots.some(h=>Math.hypot(h.x-q.x,h.z-q.z)<3.4)), d=kinds[k]; if(!spots.length) return;
       const im=new THREE.InstancedMesh(d.geo,d.mat,spots.length), m4=new THREE.Matrix4(), q4=new THREE.Quaternion(), e=new THREE.Euler();
       spots.forEach((q,i)=>{ const sc=H*q.s/d.size.y; e.set(0,q.ry,0); q4.setFromEuler(e); m4.compose(new THREE.Vector3(q.x,0,q.z),q4,new THREE.Vector3(sc,sc,sc)); im.setMatrixAt(i,m4); });
       im.castShadow=true; scene.add(im);
@@ -1073,6 +1109,9 @@ function stepWalk(){const now=performance.now(), dt=Math.min(0.1,(now-walk.last)
     if(b.max.x-b.min.x>30||b.max.z-b.min.z>30)return; // skip spread-out items (trail, swing stops, harvest stops)
     if(d<bd){bd=d;best=it}});
   if(honor){const d=Math.hypot(camera.position.x-honor.at.x,camera.position.z-honor.at.z); honor.set(d<1.6)}
+  { let hs=null,hd=3; harvestSpots.forEach(h=>{const d=Math.hypot(camera.position.x-h.x,camera.position.z-h.z); if(d<hd){hd=d;hs=h}});
+    if(hs!==walk.stop){ walk.stop=hs; if(hs){wk.textContent='Harvest Stop '+hs.n+' · ripe '+hs.ripe; wn.textContent=hs.title} else {walk.near=undefined} }
+    if(hs) return; }
   const near=bd<5?best:null;
   if(near!==walk.near){walk.near=near; if(near){wk.textContent=near.k; wn.textContent=near.name; select(near.id,false)} else {wk.textContent='Walking'; wn.textContent='Acknowledge Campus'}}}
 wbtn.onclick=()=>{walk?stopWalk():startWalk()};

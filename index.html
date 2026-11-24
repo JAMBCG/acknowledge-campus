@@ -272,7 +272,7 @@ const DATA={
    bullets:["4 van bays + 1 bus bay, wash rack, EV-ready charging","Volunteer lounge and driver ready room","Dispatch and trip-planning office","Second-floor suite held for a future USO or partner office","Security manager's office: patrol schedule, key control, incident reports","Security patrol golf cart and radio charging","Golf-cart fleet (4 carts) under a charging canopy","Rooftop solar"]},
  plaza:{name:"Acknowledgment Plaza",k:"Honors · Entrance",size:"~95 ft circle",
    text:"Every arrival drives past it. Seven poles (U.S. flag in the center, six branches around it), a backlit wall facing the drive, and a ring of memorial pavers. For now the wall holds a little something for sharp-eyed visitors (zoom in). Later it could become a famous quote or a digital message sign for events and announcements. Turn on Night to see it lit.",
-   bullets:["Six backlit glass panels, one per branch, glowing in that branch's color","Uplit flags all night (proper display for flags flown after dark)","Center light beam visible from the road","Memorial paver ring families can sponsor","Send-off point for CW Rally Point trips"]},
+   bullets:["Honor screen (right end of the wall): enrolled veterans who opt in see their service portrait and name the moment they step up; walk up to it in Walk mode to see the sample","Six backlit glass panels, one per branch, glowing in that branch's color","Uplit flags all night (proper display for flags flown after dark)","Center light beam visible from the road","Memorial paver ring families can sponsor","Send-off point for CW Rally Point trips"]},
  pond:{name:"CW Fishing Pond & Dock",k:"Outdoors",size:"~1.4 acres",
    text:"Stocked pond with an accessible fishing dock, the low-key reason a lot of veterans will show up the first time.",
    bullets:["ADA fishing pier","Shaded benches","Kids' fishing days"]},
@@ -563,6 +563,11 @@ const plazaLights=[], panels=[]; let wallMat, beam, signMat, honor=null;
 (function(){
   const box=new THREE.Mesh(new THREE.BoxGeometry(18,0.3,12),new THREE.MeshLambertMaterial({color:0x5d5c58,transparent:true,opacity:0.0}));
   box.position.set(-14,0.15,-26); scene.add(box); reg('parking',box,[box],1.2);
+  // parked cars under the solar carports (3 models, copied)
+  const kinds=[['models/car-sedan.glb',1.5],['models/car-suv.glb',1.55],['models/car-pickup.glb',1.85]], fill={};
+  [-23.5,-28.5].forEach((z,r)=>{ for(let i=0;i<7;i++){ if([1,4,8,11].includes(r*7+i)) continue; const k=(r*7+i*2)%3;
+    (fill[k]=fill[k]||[]).push({x:-21.2+i*2.4,z:z+(r?0.35:-0.35),ry:r?Math.PI:0,len:kinds[k][1]}); } });
+  Object.keys(fill).forEach(k=>fetch(kinds[k][0],{method:'HEAD'}).then(r=>{if(r.ok)placeProp(kinds[k][0],fill[k],[],{pick:'parking'})}).catch(()=>{}));
   const vanM=M(0xf2f2ee), busM=M(0xe8e1c8);
   [[-20,-24],[-17.8,-28.8],[-11.2,-24]].forEach(p=>{const c=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.2,3.2),M(0x4d6680));c.position.set(p[0],0.6,p[1]);c.castShadow=true;scene.add(c)});
   // vans outside motor pool

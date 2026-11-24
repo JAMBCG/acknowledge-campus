@@ -169,6 +169,7 @@ h1{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;margi
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script>
 (function(){
 const waves=[]; // 1 scene unit = 10 ft
@@ -338,6 +339,30 @@ Object.keys(DATA).forEach(k=>items[k]=Object.assign({id:k},DATA[k]));
 const solarM=new THREE.MeshPhongMaterial({color:0x1d2b45,shininess:80,specular:0x6688aa});
 function panel(parent,w,d,x,y,z,tilt){const m=new THREE.Mesh(new THREE.BoxGeometry(w,0.08,d),solarM);m.position.set(x,y,z);m.rotation.x=tilt||0;m.castShadow=true;parent.add(m);return m}
 building('comfort',{x:0,z:15,w:11,d:9,h:3.6,color:0xa98b62,pitch:2.8,porch:true,rot:Math.PI});
+// Real 3D models (Krea). The simple box stays as a placeholder until the model loads.
+function swapModel(id,url,o){
+  if(!THREE.GLTFLoader) return;
+  new THREE.GLTFLoader().load(url,gltf=>{
+    const it=items[id], root=gltf.scene, meshes=[];
+    root.traverse(m=>{ if(!m.isMesh) return;
+      const map=m.material.map; if(map) map.encoding=THREE.LinearEncoding;
+      m.material=new THREE.MeshLambertMaterial({map,color:0xffffff});
+      m.castShadow=m.receiveShadow=true; meshes.push(m); });
+    const box=new THREE.Box3().setFromObject(root), c=box.getCenter(new THREE.Vector3());
+    root.position.set(-c.x,-box.min.y,-c.z);
+    const holder=new THREE.Group(); holder.add(root);
+    holder.scale.setScalar(o.scale); holder.rotation.y=o.rot||0; holder.position.set(o.x,0,o.z);
+    scene.add(holder);
+    // retire the placeholder
+    scene.remove(it.group);
+    it.meshes.forEach(m=>{const i=pick.indexOf(m); if(i>-1) pick.splice(i,1)});
+    meshes.forEach(m=>{m.userData.id=id; pick.push(m)});
+    it.group=holder; it.meshes=meshes; it.base=meshes.map(()=>0); it.box=null;
+    if(o.labelH) it.labelH=o.labelH;
+    if(current===id) select(id,false);
+  });
+}
+swapModel('comfort','models/comfort-zone.glb',{x:0,z:15,scale:9.5,rot:Math.PI,labelH:3.8});
 // Chevron wings: open toward the gate like rank stripes
 function wing(id,cx,cz,len,dep,h,theta,color){
   const g=new THREE.Group(); g.position.set(cx,0,cz); g.rotation.y=theta;

@@ -450,7 +450,23 @@ swapModel('pavilion','models/jd-event-center.glb',{x:-18,z:-10,scale:12,rot:Math
 })();
 
 // Acknowledgment Plaza
-const plazaLights=[], panels=[]; let wallMat, beam, signMat;
+// Flag faces drawn in the page: U.S. flag + service-branch color flags (branch names, no official seals)
+function flagTexture(i,f){
+  const c=document.createElement('canvas'); c.width=380; c.height=228; const x=c.getContext('2d');
+  if(i===0){ const sh=228/13; for(let k=0;k<13;k++){x.fillStyle=k%2?'#ffffff':'#b22234';x.fillRect(0,k*sh,380,sh+1)}
+    x.fillStyle='#3c3b6e'; x.fillRect(0,0,152,sh*7); x.fillStyle='#fff';
+    for(let r=0;r<9;r++)for(let k=0;k<(r%2?5:6);k++){const sx=(r%2?25:12.7)+k*25.3, sy=8.8+r*12.3; x.beginPath(); for(let p=0;p<10;p++){const a=-Math.PI/2+p*Math.PI/5, rr=p%2?2:4.6; x.lineTo(sx+Math.cos(a)*rr,sy+Math.sin(a)*rr)} x.fill()}
+  } else {
+    const names=['','ARMY','MARINE CORPS','NAVY','AIR FORCE','SPACE FORCE','COAST GUARD'];
+    const hex=n=>'#'+n.toString(16).padStart(6,'0');
+    x.fillStyle=hex(f[0]); x.fillRect(0,0,380,228);
+    x.strokeStyle=hex(f[1]); x.lineWidth=10; x.strokeRect(10,10,360,208);
+    x.fillStyle=hex(f[1]); x.beginPath(); for(let p=0;p<10;p++){const a=-Math.PI/2+p*Math.PI/5, rr=p%2?20:48; x.lineTo(190+Math.cos(a)*rr,92+Math.sin(a)*rr)} x.fill();
+    x.font='800 34px "Saira Condensed","Arial Narrow",Arial,sans-serif'; x.textAlign='center'; x.fillText(names[i],190,190);
+  }
+  const t=new THREE.CanvasTexture(c); t.anisotropy=4; return t;
+}
+const plazaLights=[], panels=[]; let wallMat, beam, signMat, honor=null;
 (function(){
   const g=new THREE.Group(); g.position.set(10,0,-27);
   const pad=new THREE.Mesh(new THREE.CylinderGeometry(4,4,0.12,48),M(0xd2ccbc)); pad.position.y=0.06; pad.receiveShadow=true; g.add(pad);
@@ -461,9 +477,10 @@ const plazaLights=[], panels=[]; let wallMat, beam, signMat;
   flags.forEach((f,i)=>{
     const center=i===0, a=(i-1)/6*Math.PI*2, r=center?0:2.4, x=Math.sin(a)*r, z=Math.cos(a)*r, h=center?6.5:4.8;
     const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.07,h,8),M(0xd9d9d9)); pole.position.set(x,h/2,z); g.add(pole);
-    const fl=new THREE.Mesh(new THREE.PlaneGeometry(1.5,0.9),new THREE.MeshLambertMaterial({color:f[0],side:THREE.DoubleSide}));
-    fl.position.set(x+0.77,h-0.55,z); g.add(fl); fl.userData.wave=i;
-    const st=new THREE.Mesh(new THREE.PlaneGeometry(1.5,0.14),new THREE.MeshLambertMaterial({color:f[1],side:THREE.DoubleSide})); st.position.set(0,-0.2,0.002); fl.add(st);
+    const fg=new THREE.PlaneGeometry(1.5,0.9,18,6); fg.translate(0.75,0,0);
+    const fl=new THREE.Mesh(fg,new THREE.MeshLambertMaterial({map:flagTexture(i,f),side:THREE.DoubleSide}));
+    fl.position.set(x+0.02,h-0.55,z); fl.castShadow=true; g.add(fl); fl.userData.wave=i; fl.userData.base=fg.attributes.position.array.slice();
+    const fin=new THREE.Mesh(new THREE.SphereGeometry(0.08,10,8),M(0xd8b45a)); fin.position.set(x,h+0.04,z); g.add(fin);
     const up=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.08,10),bollM); up.position.set(x,0.16,z-0.35); g.add(up);
     meshes.push(pole); waves.push(fl);
     if(!center){const pa=(i-0.5)/6*Math.PI*2;
@@ -472,15 +489,44 @@ const plazaLights=[], panels=[]; let wallMat, beam, signMat;
   });
   // ACKNOWLEDGE wall facing the entrance drive
   const wall=new THREE.Mesh(new THREE.BoxGeometry(0.5,1.7,8.2),M(0x3a3f2e)); wall.position.set(5.3,0.85,0); wall.castShadow=true; g.add(wall);
-  const cv=document.createElement('canvas'), ce=document.createElement('canvas'); cv.width=ce.width=1024; cv.height=ce.height=200;
-  function draw(c,fg,bg){const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,1024,200);x.fillStyle=fg;x.textAlign='center';
-    x.font='800 62px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('PLAZA OPENS AT 0600.',512,66);
-    x.fillText('BE HERE AT 0500.',512,128);
-    x.font='600 30px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('SAW THIS? TELL BRANDON: "I WAS 15 MINUTES EARLY."',512,180)}
+  const cv=document.createElement('canvas'), ce=document.createElement('canvas'); cv.width=ce.width=840; cv.height=ce.height=200;
+  function draw(c,fg,bg){const x=c.getContext('2d'),W=c.width,C=W/2;x.fillStyle=bg;x.fillRect(0,0,W,200);x.fillStyle=fg;x.textAlign='center';
+    x.font='800 62px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('PLAZA OPENS AT 0600.',C,66);
+    x.fillText('BE HERE AT 0500.',C,128);
+    x.font='600 30px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('SAW THIS? TELL BRANDON: "I WAS 15 MINUTES EARLY."',C,180)}
   draw(cv,'#d9b56a','#3a3f2e'); draw(ce,'#ffffff','#000000');
   const tex=new THREE.CanvasTexture(cv), etex=new THREE.CanvasTexture(ce);
   wallMat=new THREE.MeshLambertMaterial({map:tex,emissiveMap:etex,emissive:0x000000});
-  const face=new THREE.Mesh(new THREE.PlaneGeometry(8,1.56),wallMat); face.rotation.y=-Math.PI/2; face.position.set(5.04,0.85,0); g.add(face);
+  const face=new THREE.Mesh(new THREE.PlaneGeometry(6.55,1.56),wallMat); face.rotation.y=-Math.PI/2; face.position.set(5.04,0.85,-0.72); g.add(face);
+  // Honor screen (right end as you face the wall): body-size portrait display + camera above it
+  const frame=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.05,0.68),M(0x1d1f19)); frame.position.set(5.0,0.68,3.3); g.add(frame);
+  const sc=document.createElement('canvas'); sc.width=300; sc.height=560;
+  const stex=new THREE.CanvasTexture(sc);
+  const screen=new THREE.Mesh(new THREE.PlaneGeometry(0.56,0.92),new THREE.MeshBasicMaterial({map:stex})); screen.rotation.y=-Math.PI/2; screen.position.set(4.945,0.68,3.3); g.add(screen);
+  const cam=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.07,0.14),M(0x111111)); cam.position.set(4.97,1.27,3.3); g.add(cam);
+  const lens=new THREE.Mesh(new THREE.CircleGeometry(0.022,14),new THREE.MeshBasicMaterial({color:0x3a6fd8})); lens.rotation.y=-Math.PI/2; lens.position.set(4.928,1.27,3.3); g.add(lens);
+  const pad2=new THREE.Mesh(new THREE.CircleGeometry(0.45,28),M(0xb9a77d)); pad2.rotation.x=-Math.PI/2; pad2.position.set(4.25,0.075,3.3); g.add(pad2);
+  function drawScreen(on){const x=sc.getContext('2d'),W=300,H=560;
+    const gr=x.createLinearGradient(0,0,0,H); gr.addColorStop(0,on?'#1c2a44':'#141712'); gr.addColorStop(1,on?'#0b111d':'#0b0c09'); x.fillStyle=gr; x.fillRect(0,0,W,H);
+    x.strokeStyle='#d9b56a'; x.lineWidth=6; x.strokeRect(8,8,W-16,H-16); x.textAlign='center'; x.fillStyle='#d9b56a';
+    if(!on){ x.font='800 30px "Saira Condensed","Arial Narrow",Arial,sans-serif'; x.fillText('STEP UP',W/2,230); x.fillText('TO BE',W/2,268); x.fillText('ACKNOWLEDGED',W/2,306);
+      x.font='600 17px "Saira Condensed","Arial Narrow",Arial,sans-serif'; x.fillStyle='#a9a48f'; x.fillText('ENROLLED VETERANS ONLY',W/2,360); return; }
+    // portrait (placeholder silhouette in service uniform)
+    x.fillStyle='#2c3b55'; x.fillRect(40,60,W-80,300);
+    x.fillStyle='#c9b99a'; x.beginPath(); x.arc(W/2,170,46,0,Math.PI*2); x.fill();
+    x.fillStyle='#3f4a2c'; x.beginPath(); x.ellipse(W/2,128,52,20,0,0,Math.PI*2); x.fill(); x.fillRect(W/2-52,120,104,18);
+    x.fillStyle='#3f4a2c'; x.beginPath(); x.moveTo(60,360); x.lineTo(80,250); x.quadraticCurveTo(W/2,222,W-80,250); x.lineTo(W-60,360); x.fill();
+    x.fillStyle='#d9b56a'; x.fillRect(96,282,30,6); x.fillRect(96,292,30,6); x.fillRect(W-126,282,30,6);
+    x.font='800 30px "Saira Condensed","Arial Narrow",Arial,sans-serif'; x.fillStyle='#ffffff'; x.fillText('WELCOME HOME',W/2,408);
+    x.font='800 24px "Saira Condensed","Arial Narrow",Arial,sans-serif'; x.fillStyle='#d9b56a'; x.fillText('SFC J. DOE',W/2,444);
+    x.font='600 18px "Saira Condensed","Arial Narrow",Arial,sans-serif'; x.fillStyle='#cfd6e0'; x.fillText('U.S. ARMY · 1996 – 2020',W/2,472); x.fillText('YOUR SERVICE IS ACKNOWLEDGED',W/2,508);
+    x.font='500 13px Arial,sans-serif'; x.fillStyle='#7f8794'; x.fillText('SAMPLE · OPT-IN HONOR PROFILE',W/2,540);
+    stex.needsUpdate=true; }
+  drawScreen(false); stex.needsUpdate=true;
+  honor={on:false,at:new THREE.Vector3(),set(v){if(v===this.on)return;this.on=v;drawScreen(v);stex.needsUpdate=true}};
+  pad2.updateMatrixWorld(); g.updateMatrixWorld(); honor.at.set(10+4.25,0,-27+3.3);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{drawScreen(honor.on);stex.needsUpdate=true});
+  meshes.push(frame,screen);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{draw(cv,'#d9b56a','#3a3f2e');draw(ce,'#ffffff','#000000');tex.needsUpdate=etex.needsUpdate=true});
   // night beam + uplights
   beam=new THREE.Mesh(new THREE.CylinderGeometry(1.4,0.25,48,24,1,true),new THREE.MeshBasicMaterial({color:0xfff1c9,transparent:true,opacity:0.1,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
@@ -624,6 +670,13 @@ const plazaLights=[], panels=[]; let wallMat, beam, signMat;
   const isl=new THREE.Mesh(new THREE.CylinderGeometry(2.6,2.6,0.25,40),M(0x7fa04f)); isl.position.y=0.12; g.add(isl);
   const stone=new THREE.Mesh(new THREE.BoxGeometry(1.8,0.8,0.5),M(0x4a4f3c)); stone.position.set(0,0.6,-0.6); stone.castShadow=true; g.add(stone);
   [[-1.2,0.8],[1.2,0.8],[0,1.6]].forEach(p=>{const t=new THREE.Mesh(new THREE.IcosahedronGeometry(0.7,0),M(0x4f6b34));t.position.set(p[0],1.1,p[1]);t.castShadow=true;g.add(t)});
+  // U.S. flag on the island, in front of the Comfort Zone porch
+  const fh=4.6, fpole=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.065,fh,10),M(0xd9d9d9)); fpole.position.set(0,0.25+fh/2,0.6); fpole.castShadow=true; g.add(fpole);
+  const fball=new THREE.Mesh(new THREE.SphereGeometry(0.08,10,8),M(0xd8b45a)); fball.position.set(0,0.25+fh+0.05,0.6); g.add(fball);
+  const fgeo=new THREE.PlaneGeometry(1.3,0.78,18,6); fgeo.translate(0.65,0,0);
+  const usf=new THREE.Mesh(fgeo,new THREE.MeshLambertMaterial({map:flagTexture(0,[0,0]),side:THREE.DoubleSide})); usf.position.set(0.02,0.25+fh-0.45,0.6); usf.castShadow=true; g.add(usf);
+  usf.userData.wave=0.7; usf.userData.base=fgeo.attributes.position.array.slice(); waves.push(usf);
+  const fup=new THREE.PointLight(0xffe0a8,0,10,2); fup.position.set(0,0.5,1.2); g.add(fup); plazaLights.push(fup);
   scene.add(g); reg('circle',g,[ring,isl],1.4);
   flat(4,4,0x6b6a66,0,-3,0.033);
 })();
@@ -1019,6 +1072,7 @@ function stepWalk(){const now=performance.now(), dt=Math.min(0.1,(now-walk.last)
     const b=it.box, ex=Math.max(b.min.x-p.x,0,p.x-b.max.x), ez=Math.max(b.min.z-p.z,0,p.z-b.max.z), d=(ex||ez)?Math.hypot(ex,ez):-1+(b.max.x-b.min.x)*(b.max.z-b.min.z)/1e5;
     if(b.max.x-b.min.x>30||b.max.z-b.min.z>30)return; // skip spread-out items (trail, swing stops, harvest stops)
     if(d<bd){bd=d;best=it}});
+  if(honor){const d=Math.hypot(camera.position.x-honor.at.x,camera.position.z-honor.at.z); honor.set(d<1.6)}
   const near=bd<5?best:null;
   if(near!==walk.near){walk.near=near; if(near){wk.textContent=near.k; wn.textContent=near.name; select(near.id,false)} else {wk.textContent='Walking'; wn.textContent='Acknowledge Campus'}}}
 wbtn.onclick=()=>{walk?stopWalk():startWalk()};
@@ -1060,8 +1114,9 @@ const v=new THREE.Vector3(); let clock=0; const rose=document.getElementById('ro
 function tick(){
   requestAnimationFrame(tick); clock+=0.016;
   if(anim&&!tour){anim.t=Math.min(1,anim.t+0.022);const e=1-Math.pow(1-anim.t,3);camera.position.lerpVectors(anim.p0,anim.p1,e);controls.target.lerpVectors(anim.t0,anim.t1,e);if(anim.t>=1)anim=null}
-  if(!reduce){waves.forEach(f=>f.rotation.y=Math.sin(clock*2+f.userData.wave)*0.25);swings.forEach((w,i)=>{if(w.userData.plank)w.userData.plank.rotation.z=Math.sin(clock*0.9)*0.14;else w.rotation.x=Math.sin(clock*1.3+i)*0.18})}
-  if(tour)stepTour(); else if(walk)stepWalk(); else controls.update(); renderer.render(scene,camera);
+  if(!reduce){waves.forEach(f=>{const b=f.userData.base; if(!b){f.rotation.y=Math.sin(clock*2+f.userData.wave)*0.25;return}
+    const a=f.geometry.attributes.position; for(let k=0;k<a.count;k++){const px=b[k*3]; a.array[k*3+2]=Math.sin(px*4.2-clock*3.2+f.userData.wave)*0.09*(px/1.5)+Math.sin(px*7-clock*5)*0.02*(px/1.5)} a.needsUpdate=true; f.geometry.computeVertexNormals()});swings.forEach((w,i)=>{if(w.userData.plank)w.userData.plank.rotation.z=Math.sin(clock*0.9)*0.14;else w.rotation.x=Math.sin(clock*1.3+i)*0.18})}
+  if(tour)stepTour(); else if(walk)stepWalk(); else controls.update(); if(!walk&&honor) honor.set(current==='plaza'); renderer.render(scene,camera);
   {const dx=controls.target.x-camera.position.x, dz=controls.target.z-camera.position.z; rose.setAttribute('transform','rotate('+(Math.atan2(dx,dz)*180/Math.PI)+' 40 40)')}
   const w=stage.clientWidth,h=stage.clientHeight;
   Object.values(items).forEach(it=>{v.copy(centerOf(it));v.y+=it.labelH;v.project(camera);

@@ -34,7 +34,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px
   text-shadow:0 0 2px rgba(10,12,6,.95),0 0 4px rgba(10,12,6,.8),0 1px 2px rgba(10,12,6,.9)}
 .tag:hover{opacity:1}
 .tag.on{color:#ffe3a3;opacity:1;font-size:12px;text-shadow:0 0 2px #000,0 0 6px rgba(0,0,0,.9)}
-.labels.off .tag{display:none}
+.labels.off .tag:not(.on){display:none}
 .labels.touring .tag:not(.on){display:none}
 .tourbox{position:absolute;left:50%;transform:translateX(-50%);bottom:96px;width:min(560px,calc(100% - 32px));
   background:rgba(20,24,14,.86);color:#f1eedf;padding:12px 14px;border-radius:4px;display:flex;flex-direction:column;gap:6px;pointer-events:auto}
@@ -100,12 +100,12 @@ h1{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;margi
 <div class="app">
   <div class="stage" id="stage">
     <canvas id="scene" aria-label="3D model of the Acknowledge Campus concept"></canvas>
-    <div class="labels" id="labels"></div>
+    <div class="labels off" id="labels"></div>
     <div class="hud" role="toolbar" aria-label="Camera views">
       <button id="v-aerial" aria-pressed="true">Aerial</button>
       <button id="v-gate" aria-pressed="false">From the gate</button>
       <button id="v-pond" aria-pressed="false">Pond</button>
-      <button id="v-labels" aria-pressed="true">Labels</button>
+      <button id="v-labels" aria-pressed="false">Labels</button>
       <button id="v-spin" aria-pressed="false">Slow orbit</button>
       <button id="v-night" aria-pressed="false">Night</button>
       <button id="v-plaza" aria-pressed="false">Plaza</button>

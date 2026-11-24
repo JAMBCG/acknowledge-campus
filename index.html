@@ -359,6 +359,7 @@ function swapModel(id,url,o){
     meshes.forEach(m=>{m.userData.id=id; pick.push(m)});
     it.group=holder; it.meshes=meshes; it.base=meshes.map(()=>0); it.box=null;
     if(o.labelH) it.labelH=o.labelH;
+    if(o.after) o.after(holder);
     if(current===id) select(id,false);
   });
 }
@@ -792,19 +793,21 @@ while(placed<120){const x=(rnd()-0.5)*SIDE,z=ZMIN+rnd()*DEPTH; if(!clear(x,z))co
   const base=new THREE.Mesh(new THREE.BoxGeometry(7.4,1.1,1.6),M(0xb9ad91)); base.position.y=0.55; base.castShadow=true; g.add(base);
   const body=new THREE.Mesh(new THREE.BoxGeometry(6.6,1.9,0.6),M(0x3a3f2e)); body.position.y=2.05; body.castShadow=true; g.add(body);
   const cap=new THREE.Mesh(new THREE.BoxGeometry(7,0.2,0.8),M(0xb9ad91)); cap.position.y=3.1; g.add(cap);
-  const cv=document.createElement('canvas'), ce=document.createElement('canvas'); cv.width=ce.width=1024; cv.height=ce.height=300;
-  function draw(c,fg,bg){const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,1024,300);x.fillStyle=fg;x.textAlign='center';
-    x.font='800 150px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('ACKNOWLEDGE',512,150);
-    x.font='700 64px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('C A M P U S',512,222);
-    x.font='600 30px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('EVERY BRANCH · EVERY ERA · EVERY VETERAN',512,276)}
+  const cv=document.createElement('canvas'), ce=document.createElement('canvas'); cv.width=ce.width=1320; cv.height=ce.height=300;
+  function draw(c,fg,bg){const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,1320,300);x.fillStyle=fg;x.textAlign='center';
+    x.font='800 150px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('ACKNOWLEDGE',660,150);
+    x.font='700 64px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('C A M P U S',660,222);
+    x.font='600 30px "Saira Condensed","Arial Narrow",Arial,sans-serif';x.fillText('EVERY BRANCH · EVERY ERA · EVERY VETERAN',660,276)}
   draw(cv,'#d9b56a','#3a3f2e'); draw(ce,'#ffffff','#000000');
   const tex=new THREE.CanvasTexture(cv), etex=new THREE.CanvasTexture(ce);
   signMat=new THREE.MeshLambertMaterial({map:tex,emissiveMap:etex,emissive:0x000000});
-  const face=new THREE.Mesh(new THREE.PlaneGeometry(6.3,1.75),signMat); face.position.set(0,2.05,0.31); g.add(face);
+  const face=new THREE.Mesh(new THREE.PlaneGeometry(6.3,1.43),signMat); face.position.set(0,2.05,0.31); g.add(face);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{draw(cv,'#d9b56a','#3a3f2e');draw(ce,'#ffffff','#000000');tex.needsUpdate=etex.needsUpdate=true});
   [-2.4,2.4].forEach(x=>{const u=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.08,10),bollM);u.position.set(x,0.05,1.4);g.add(u)});
   [-3.4,3.4].forEach(x=>{const b=new THREE.Mesh(new THREE.IcosahedronGeometry(0.6,0),M(0x4f6b34));b.position.set(x,0.55,0.9);g.add(b)});
   scene.add(g); reg('sign',g,[base,body,cap],3.9);
+  swapModel('sign','models/entrance-sign.glb',{x:8,z:ZMIN+1.6,scale:3.7,rot:Math.PI+0.2,labelH:2.6,
+    after:h=>{const f=new THREE.Mesh(new THREE.PlaneGeometry(1.32,0.30),signMat); f.position.set(0,0.39,0.022); h.add(f)}});
 })();
 
 // labels

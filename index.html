@@ -251,7 +251,7 @@ function reg(id,group,meshes,labelH){
 const DATA={
  comfort:{name:"The Comfort Zone",k:"Front door · Morale",size:"~110 × 90 ft, center of the Chevron",
    text:"The first building you see from the gate and the first door you walk through. It sits at the point of the Chevron, with indoor hallways into Vann Hall (east wing) and the Family Center (west wing).",
-   bullets:["Welcome desk at the front porch","Covered, dog-friendly front porch (service and well-trained dogs welcome)","Lounge, coffee bar, game room, quiet room","Kitchen cooking from the Victory Garden","Battle Buddy dispatch board"]},
+   bullets:["Welcome desk at the front porch","Covered, dog-friendly front porch with rocking chairs and an outdoor stone fireplace (service and well-trained dogs welcome)","Stacked limestone fireplace in the main lounge","Lounge, coffee bar, game room, quiet room","Kitchen cooking from the Victory Garden","Battle Buddy dispatch board"]},
  hall:{name:"Vann Hall",k:"Admin · Legal · Finance",size:"~125 × 55 ft, east wing of the Chevron",
    text:"Named in honor of John Vann. East wing of the Chevron, reached through an indoor hallway from the Comfort Zone lounge. A veteran can see benefits help and legal help in one visit.",
    bullets:["Intake and VA benefits & claims help (VSO office)","Veterans Legal Office: VA appeals, discharge upgrades, wills, family law","Nonprofit finance office (back-office side, away from public traffic)","Executive offices and board room","Wall of service: all branches, all eras"]},
@@ -410,7 +410,7 @@ function placeProp(url,list,hide,o){
     });
   });
 }
-swapModel('comfort','models/comfort-zone.glb',{x:0,z:15,scale:9.5,rot:Math.PI,labelH:3.8});
+swapModel('comfort','models/comfort-zone.glb',{x:0,z:15,scale:5.6,rot:Math.PI,labelH:4.2});
 // Chevron wings: open toward the gate like rank stripes
 function wing(id,cx,cz,len,dep,h,theta,color){
   const g=new THREE.Group(); g.position.set(cx,0,cz); g.rotation.y=theta;
@@ -1060,7 +1060,7 @@ function centerOf(it){if(it.labelAt)return it.labelAt.clone(); const v=new THREE
 function select(id,fly){
   if(current){const c=items[current];c.meshes.forEach((m,i)=>m.material.emissive&&m.material.emissive.setHex(c.base[i]));c.tag.classList.remove('on');c.btn.classList.remove('on')}
   current=id; const it=items[id];
-  it.meshes.forEach(m=>m.material.emissive&&m.material.emissive.setHex(0x5a3f08));
+  it.meshes.forEach(m=>m.material.emissive&&m.material.emissive.setHex(0x1c1407));
   it.tag.classList.add('on'); it.btn.classList.add('on');
   detail.innerHTML=`<div class="eyebrow">${it.k}</div><h2>${it.name}</h2><div class="size">${it.size}</div><p style="margin-top:8px">${it.text}</p><ul>${it.bullets.map(b=>`<li>${b}</li>`).join('')}</ul>`;
   if(fly){const c=centerOf(it); const dir=camera.position.clone().sub(controls.target).normalize(); flyTo(c.clone().add(dir.multiplyScalar(38)).setY(Math.max(18,c.y+18)),c)}

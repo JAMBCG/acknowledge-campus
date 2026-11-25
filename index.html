@@ -155,7 +155,7 @@ h1{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;margi
     </div>
     <div class="facts">
       <div><b>30</b><span>acres (~1,220 × 1,070 ft)</span></div>
-      <div><b>300</b><span>housed members + ~30 lodge rooms</span></div>
+      <div><b>300</b><span>housed members + ~30 lodge rooms + 16 RV pads</span></div>
       <div><b>~1.4</b><span>acre stocked pond</span></div>
     </div>
     <section class="detail" id="detail" aria-live="polite"></section>
@@ -291,14 +291,14 @@ const DATA={
    text:"Visitor and staff lot near the gate. Covered by solar carports that shade cars in summer and make power.",
    bullets:["Accessible spaces up front","Solar carport canopies","Walk to the Welcome Circle and the plaza"]},
  lodge:{name:"Acknowledge Lodge",k:"Lodging",size:"~140 × 60 ft, 3 stories, ~30 rooms",
-   text:"Short-stay lodging for visiting veterans and families. Family suites on the ground floor open onto private patios facing the lawn; single rooms are upstairs.",
+   text:"Short-stay lodging (30 days or less) for visiting veterans and families, and the campus transition point: new members stay here a few nights while their village apartment is made ready. Family suites on the ground floor open onto private patios facing the lawn; single rooms are upstairs. Separate from the 300 village residents.",
    bullets:["Ground floor: ~8 family suites (2 rooms + kitchenette, accessible)","Floors 2–3: ~22 single rooms for individual veterans","Shared laundry, kitchen and family room","Stays for appointments, events, or a rough patch"]},
  dogs:{name:"Dog Park",k:"Outdoors",size:"~80 × 60 ft fenced",
    text:"Fenced off-leash area on the outer east edge, between the Harvest Market and the RV lot, far from the JD Event Center so barking stays out of ceremonies. Handy for RV guests and shoppers with dogs.",
    bullets:["Separate large / small dog runs","Shade trees, benches, water station","Dog wash station","Room for service-dog training classes"]},
- rv:{name:"RV Lot",k:"Lodging",size:"6 pull-through pads, short stays",
+ rv:{name:"RV Lot",k:"Lodging · 30-day transition",size:"16 pull-through pads (15 guest + 1 camp host)",
    text:"Short-stay RV pads for traveling veterans, VA appointment trips and event weekends. RVs check in at the Gatehouse, then turn onto their own RV road and circle a gravel loop to pull straight through their pad. They never pass through car parking or tight turns.",
-   bullets:["Dedicated 30 ft RV road from the entrance drive, inside the gate","Gravel loop around the pads with wide corners","Water / 30–50 amp electric / sewer at each pad","Dump station on the loop","Stay limit (e.g., up to 14–30 days); one longer-term camp host pad"]},
+   bullets:["Dedicated 30 ft RV road from the entrance drive, inside the gate","Gravel loop around the pads with wide corners","Water / 30–50 amp electric / sewer at each pad","Dump station on the loop","Stays of 30 days or less; one longer-term camp host pad","Together with Acknowledge Lodge, the campus short-stay transition point: arrivals settle in here while village housing is made ready"]},
  garden:{name:"Victory Garden",k:"Grow",size:"~80 × 60 ft",
    text:"Raised vegetable beds and a small greenhouse worked by veteran volunteers. Produce goes to the Comfort Zone kitchen, events and families staying at the Lodge.",
    bullets:["12 waist-high raised beds (wheelchair-friendly)","Greenhouse for starts and herbs","Tool shed and rain barrels","Composting area"]},
@@ -684,12 +684,13 @@ const plazaLights=[], panels=[]; let wallMat, beam, signMat, signBackMat, honor=
 // ---- RV lot (SW corner, outside the trail)
 (function(){
   const g=new THREE.Group(); g.position.set(-33,0,-33);
-  const gravel=new THREE.Mesh(new THREE.BoxGeometry(10,0.06,10),M(0xa39c88)); gravel.position.y=0.03; gravel.receiveShadow=true; g.add(gravel);
+  const gravel=new THREE.Mesh(new THREE.BoxGeometry(13,0.06,19),M(0xa39c88)); gravel.position.set(0,0.03,5.1); gravel.receiveShadow=true; g.add(gravel);
   const rvM=M(0xe9e6dc), stripe=M(0x56707f), rvOld=[], rvSpots=[];
-  for(let i=0;i<6;i++){const x=-3.6+(i%3)*3.6, z=i<3?-2.4:2.4;
+  const RZ=[-2.4,2.4,7.8,12.6];
+  for(let i=0;i<16;i++){const x=-4.5+(i%4)*3, r=Math.floor(i/4), z=RZ[r];
     const rv=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.6,4),rvM);rv.position.set(x,0.85,z);rv.castShadow=true;g.add(rv);
     const s=new THREE.Mesh(new THREE.BoxGeometry(1.42,0.18,4.02),stripe);s.position.set(x,0.9,z);g.add(s);
-    const hk=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.5,0.25),M(0x4a4a44));hk.position.set(x+1,0.25,z);g.add(hk); rvOld.push(rv,s,hk); rvSpots.push({x,z,len:4.4,parent:g,ry:i<3?0:Math.PI})}
+    const hk=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.5,0.25),M(0x4a4a44));hk.position.set(x+1,0.25,z);g.add(hk); rvOld.push(rv,s,hk); rvSpots.push({x,z,len:4.4,parent:g,ry:r%2?Math.PI:0})}
   scene.add(g); reg('rv',g,[gravel],2.4);
   placeProp('models/rv-trailer.glb',rvSpots,rvOld);
   flat(37,3,0x6b6a66,-20,-38.3,0.032);   // RV road: entrance drive -> RV loop (inside the gate)
@@ -1008,6 +1009,7 @@ function clear(x,z){
   if(z<-40 && x<-4 && x>-30)return false;          // market (east of the drive)
   if(Math.abs(z+40.5)<1.6 && x>1 && x<17)return false; // cottage driveway
   if(Math.abs(z+38.3)<2.2 && x<-1 && x>-40)return false; // RV road
+  if(x<-24.5 && z>-39 && z<-16.5)return false;      // RV lot (16 pads)
   if(Math.abs(z+17.5)<2.5 && x>0 && x<32)return false;
   return !zones.some(q=>Math.hypot(x-q[0],z-q[1])<q[2]) && Math.abs(x)<SIDE/2-1.5 && z>ZMIN+1.5 && z<ZMAX-1.5;
 }

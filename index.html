@@ -617,7 +617,6 @@ const plazaLights=[], panels=[]; let wallMat, beam, signMat, signBackMat, honor=
     (fill[k]=fill[k]||[]).push({x:-21.2+i*2.4,z:z+(r?0.35:-0.35),ry:r?Math.PI:0,len:kinds[k][1]}); } });
   Object.keys(fill).forEach(k=>fetch(kinds[k][0],{method:'HEAD'}).then(r=>{if(r.ok)placeProp(kinds[k][0],fill[k],[],{pick:'parking'})}).catch(()=>{}));
   const vanM=M(0xf2f2ee), busM=M(0xe8e1c8);
-  [[-20,-24],[-17.8,-28.8],[-11.2,-24]].forEach(p=>{const c=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.2,3.2),M(0x4d6680));c.position.set(p[0],0.6,p[1]);c.castShadow=true;scene.add(c)});
   // vans outside motor pool
   const vanOld=[];
   for(let i=0;i<3;i++){const v=new THREE.Mesh(new THREE.BoxGeometry(1.8,2,4.4),vanM);v.position.set(24.5+i*2.7,1,-21.5);v.castShadow=true;scene.add(v);vanOld.push(v)}

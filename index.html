@@ -170,6 +170,7 @@ h1{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;margi
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/meshopt_decoder.js"></script>
 <script>
 (function(){
 const waves=[]; // 1 scene unit = 10 ft
@@ -250,7 +251,7 @@ function reg(id,group,meshes,labelH){
 
 const DATA={
  comfort:{name:"The Comfort Zone",k:"Front door · Morale",size:"~110 × 90 ft, center of the Chevron",
-   text:"The first building you see from the gate and the first door you walk through. It is the point of the Chevron: a taller center block set back, with two arms angled forward at the same angle as Vann Hall (east wing) and the Family Center (west wing), joined to both by enclosed glass hallways so no one has to step outside. Rooftop solar runs in a double chevron along both arms.",
+   text:"The first building you see from the gate and the first door you walk through. Two stories in the Vann Hall style, set at the point of the Chevron with Vann Hall (east wing) and the Family Center (west wing) running straight into its side walls, so you never step outside. Inside, a two-story great hall with a 6 ft walk-around ramp on each side climbing to the second floor; daylight pours down from the clerestory. Double-chevron solar on the south roof.",
    bullets:["Welcome desk at the front porch","Covered, dog-friendly front porch with rocking chairs and an outdoor stone fireplace (service and well-trained dogs welcome)","Stacked limestone fireplace in the main lounge","Lounge, coffee bar, game room, quiet room","Kitchen cooking from the Victory Garden","Battle Buddy dispatch board"]},
  hall:{name:"Vann Hall",k:"Admin · Legal · Finance",size:"~125 × 55 ft, east wing of the Chevron",
    text:"Named in honor of John Vann. East wing of the Chevron, reached through an indoor hallway from the Comfort Zone lounge. A veteran can see benefits help and legal help in one visit.",
@@ -348,7 +349,7 @@ building('comfort',{x:0,z:15,w:11,d:9,h:3.6,color:0xa98b62,pitch:2.8,porch:true,
 // Real 3D models (Krea). The simple box stays as a placeholder until the model loads.
 function swapModel(id,url,o){
   if(!THREE.GLTFLoader) return;
-  new THREE.GLTFLoader().load(url,gltf=>{
+  new THREE.GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(url,gltf=>{
     const it=items[id], root=gltf.scene, meshes=[];
     root.traverse(m=>{ if(!m.isMesh) return;
       const map=m.material.map; if(map) map.encoding=THREE.LinearEncoding;
@@ -378,7 +379,7 @@ function loadProp(url,cb){
   if(!THREE.GLTFLoader) return;
   if(propCache[url]){ propCache[url].then(cb); return; }
   propCache[url]=new Promise(res=>{
-    new THREE.GLTFLoader().load(url,gltf=>{
+    new THREE.GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(url,gltf=>{
       gltf.scene.updateMatrixWorld(true);
       let geo=null, map=null;
       gltf.scene.traverse(m=>{ if(m.isMesh && !geo){ geo=m.geometry.clone(); geo.applyMatrix4(m.matrixWorld); map=m.material.map; } });
@@ -410,13 +411,13 @@ function placeProp(url,list,hide,o){
     });
   });
 }
-swapModel('comfort','models/comfort-zone.glb',{x:0,z:15.2,scale:5.6,rot:Math.PI*1.25,labelH:4.4,after:h=>{
-  // double-chevron solar: two rows of panels on the inner (south-facing) roof slope of each arm (model coords)
+swapModel('comfort','models/comfort-zone.glb',{x:0,z:15.5,scale:7.8,rot:Math.PI,labelH:5.2,after:h=>{
+  // double-chevron solar on the front (south) roof slope, in model coords
   const root=h.children[0], pm=new THREE.MeshLambertMaterial({color:0x1d2a44,emissive:0x000000});
-  const P=[[-0.735, 0.0117, -0.47, -0.216, 0.939, 0.269, 1, 0], [-0.61, 0.0116, -0.47, 0.055, 0.951, 0.305, 1, 0], [-0.485, 0.011, -0.47, -0.03, 0.956, 0.292, 1, 0], [-0.36, 0.0114, -0.47, -0.431, 0.86, 0.275, 1, 0], [-0.235, 0.0114, -0.47, 0.023, 0.953, 0.302, 1, 0], [-0.11, 0.2142, -0.47, -0.016, 0.983, 0.184, 1, 0], [0.015, 0.2204, -0.47, -0.003, 0.984, 0.179, 1, 0], [0.14, 0.2205, -0.47, -0.0, 0.983, 0.184, 1, 0], [-0.735, -0.0201, -0.37, -0.069, 0.952, 0.297, 1, 0], [-0.61, -0.0203, -0.37, 0.006, 0.953, 0.302, 1, 0], [-0.485, -0.0205, -0.37, 0.024, 0.953, 0.301, 1, 0], [-0.36, -0.0199, -0.37, -0.063, 0.954, 0.293, 1, 0], [-0.235, -0.0205, -0.37, 0.048, 0.954, 0.297, 1, 0], [-0.11, 0.1953, -0.37, -0.006, 0.983, 0.186, 1, 0], [0.14, 0.2022, -0.37, -0.0, 0.988, 0.152, 1, 0], [0.555, 0.2166, -0.15, -0.213, 0.977, -0.001, 0, 1], [0.555, 0.0051, 0.1, -0.343, 0.939, 0.008, 0, 1], [0.555, 0.0052, 0.225, -0.345, 0.936, -0.066, 0, 1], [0.555, 0.005, 0.35, -0.349, 0.937, -0.012, 0, 1], [0.555, 0.0044, 0.6, -0.341, 0.94, 0.02, 0, 1], [0.455, 0.1885, -0.15, -0.233, 0.972, -0.035, 0, 1], [0.455, -0.0316, 0.1, -0.332, 0.943, 0.013, 0, 1], [0.455, -0.0318, 0.225, -0.362, 0.932, -0.02, 0, 1], [0.455, -0.0316, 0.35, -0.336, 0.942, 0.001, 0, 1], [0.455, -0.0317, 0.475, -0.343, 0.918, 0.197, 0, 1], [0.455, -0.0324, 0.6, -0.33, 0.944, 0.002, 0, 1]];
+  const P=[[-0.07, 0.2154, 0.054, -0.001, 0.966, 0.259, -0.964, 0.265], [-0.158, 0.209, 0.078, -0.002, 0.968, 0.25, -0.964, 0.265], [-0.246, 0.2029, 0.103, -0.004, 0.969, 0.245, -0.964, 0.265], [-0.334, 0.191, 0.127, -0.0, 0.972, 0.233, -0.964, 0.265], [-0.422, 0.1767, 0.151, -0.257, 0.922, 0.291, -0.964, 0.265], [-0.51, 0.1691, 0.175, 0.003, 0.95, 0.313, -0.964, 0.265], [-0.598, 0.1616, 0.199, 0.011, 0.952, 0.305, -0.964, 0.265], [-0.686, 0.1564, 0.224, 0.031, 0.972, 0.233, -0.964, 0.265], [-0.774, 0.1464, 0.248, -0.009, 0.955, 0.297, -0.964, 0.265], [0.07, 0.2154, 0.054, -0.001, 0.963, 0.269, 0.964, 0.265], [0.158, 0.2089, 0.078, 0.002, 0.967, 0.256, 0.964, 0.265], [0.246, 0.2029, 0.103, -0.003, 0.969, 0.248, 0.964, 0.265], [0.334, 0.1912, 0.127, 0.001, 0.971, 0.238, 0.964, 0.265], [0.422, 0.1769, 0.151, -0.011, 0.957, 0.289, 0.964, 0.265], [0.51, 0.1694, 0.175, -0.008, 0.954, 0.3, 0.964, 0.265], [0.598, 0.1617, 0.199, -0.005, 0.954, 0.299, 0.964, 0.265], [0.774, 0.1464, 0.248, -0.004, 0.952, 0.306, 0.964, 0.265], [-0.07, 0.1866, 0.144, -0.001, 0.97, 0.242, -0.964, 0.265], [-0.158, 0.1809, 0.168, 0.0, 0.971, 0.238, -0.964, 0.265], [-0.246, 0.1749, 0.193, 0.0, 0.978, 0.207, -0.964, 0.265], [-0.334, 0.1635, 0.217, -0.0, 0.972, 0.234, -0.964, 0.265], [-0.422, 0.1481, 0.241, -0.023, 0.96, 0.28, -0.964, 0.265], [-0.51, 0.1405, 0.265, -0.011, 0.953, 0.303, -0.964, 0.265], [-0.598, 0.1328, 0.289, -0.003, 0.953, 0.304, -0.964, 0.265], [-0.686, 0.1278, 0.314, 0.055, 0.94, 0.337, -0.964, 0.265], [-0.774, 0.1173, 0.338, -0.01, 0.949, 0.315, -0.964, 0.265], [0.07, 0.1867, 0.144, 0.0, 0.97, 0.243, 0.964, 0.265], [0.158, 0.1808, 0.168, -0.002, 0.971, 0.239, 0.964, 0.265], [0.246, 0.175, 0.193, 0.007, 0.976, 0.219, 0.964, 0.265], [0.334, 0.1632, 0.217, -0.001, 0.971, 0.239, 0.964, 0.265], [0.422, 0.1482, 0.241, 0.002, 0.951, 0.31, 0.964, 0.265], [0.51, 0.1409, 0.265, 0.0, 0.95, 0.312, 0.964, 0.265], [0.598, 0.1328, 0.289, 0.014, 0.954, 0.301, 0.964, 0.265], [0.774, 0.1172, 0.338, 0.004, 0.946, 0.324, 0.964, 0.265]];
   P.forEach(([x,y,z,nx,ny,nz,ax,az])=>{
     const n=new THREE.Vector3(nx,ny,nz).normalize(), xA=new THREE.Vector3(ax,0,az), zA=new THREE.Vector3().crossVectors(xA,n).normalize(); xA.crossVectors(n,zA).normalize();
-    const pan=new THREE.Mesh(new THREE.BoxGeometry(0.112,0.006,0.085),pm); pan.position.set(x,y,z).addScaledVector(n,0.01);
+    const pan=new THREE.Mesh(new THREE.BoxGeometry(0.082,0.004,0.056),pm); pan.position.set(x,y,z).addScaledVector(n,0.008);
     pan.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(xA,n,zA)); pan.castShadow=true; pan.userData.glow=0x0c1a33; root.add(pan); panels.push(pan);
   });
 }});

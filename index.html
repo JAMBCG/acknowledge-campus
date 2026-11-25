@@ -250,7 +250,7 @@ function reg(id,group,meshes,labelH){
 
 const DATA={
  comfort:{name:"The Comfort Zone",k:"Front door · Morale",size:"~110 × 90 ft, center of the Chevron",
-   text:"The first building you see from the gate and the first door you walk through. It sits at the point of the Chevron, with indoor hallways into Vann Hall (east wing) and the Family Center (west wing).",
+   text:"The first building you see from the gate and the first door you walk through. It is the point of the Chevron: a taller center block set back, with two arms angled forward at the same angle as Vann Hall (east wing) and the Family Center (west wing), joined to both by enclosed glass hallways so no one has to step outside. Rooftop solar runs in a double chevron along both arms.",
    bullets:["Welcome desk at the front porch","Covered, dog-friendly front porch with rocking chairs and an outdoor stone fireplace (service and well-trained dogs welcome)","Stacked limestone fireplace in the main lounge","Lounge, coffee bar, game room, quiet room","Kitchen cooking from the Victory Garden","Battle Buddy dispatch board"]},
  hall:{name:"Vann Hall",k:"Admin · Legal · Finance",size:"~125 × 55 ft, east wing of the Chevron",
    text:"Named in honor of John Vann. East wing of the Chevron, reached through an indoor hallway from the Comfort Zone lounge. A veteran can see benefits help and legal help in one visit.",
@@ -410,7 +410,16 @@ function placeProp(url,list,hide,o){
     });
   });
 }
-swapModel('comfort','models/comfort-zone.glb',{x:0,z:15,scale:5.6,rot:Math.PI,labelH:4.2});
+swapModel('comfort','models/comfort-zone.glb',{x:0,z:15.2,scale:5.6,rot:Math.PI*1.25,labelH:4.4,after:h=>{
+  // double-chevron solar: two rows of panels on the inner (south-facing) roof slope of each arm (model coords)
+  const root=h.children[0], pm=new THREE.MeshLambertMaterial({color:0x1d2a44,emissive:0x000000});
+  const P=[[-0.735, 0.0117, -0.47, -0.216, 0.939, 0.269, 1, 0], [-0.61, 0.0116, -0.47, 0.055, 0.951, 0.305, 1, 0], [-0.485, 0.011, -0.47, -0.03, 0.956, 0.292, 1, 0], [-0.36, 0.0114, -0.47, -0.431, 0.86, 0.275, 1, 0], [-0.235, 0.0114, -0.47, 0.023, 0.953, 0.302, 1, 0], [-0.11, 0.2142, -0.47, -0.016, 0.983, 0.184, 1, 0], [0.015, 0.2204, -0.47, -0.003, 0.984, 0.179, 1, 0], [0.14, 0.2205, -0.47, -0.0, 0.983, 0.184, 1, 0], [-0.735, -0.0201, -0.37, -0.069, 0.952, 0.297, 1, 0], [-0.61, -0.0203, -0.37, 0.006, 0.953, 0.302, 1, 0], [-0.485, -0.0205, -0.37, 0.024, 0.953, 0.301, 1, 0], [-0.36, -0.0199, -0.37, -0.063, 0.954, 0.293, 1, 0], [-0.235, -0.0205, -0.37, 0.048, 0.954, 0.297, 1, 0], [-0.11, 0.1953, -0.37, -0.006, 0.983, 0.186, 1, 0], [0.14, 0.2022, -0.37, -0.0, 0.988, 0.152, 1, 0], [0.555, 0.2166, -0.15, -0.213, 0.977, -0.001, 0, 1], [0.555, 0.0051, 0.1, -0.343, 0.939, 0.008, 0, 1], [0.555, 0.0052, 0.225, -0.345, 0.936, -0.066, 0, 1], [0.555, 0.005, 0.35, -0.349, 0.937, -0.012, 0, 1], [0.555, 0.0044, 0.6, -0.341, 0.94, 0.02, 0, 1], [0.455, 0.1885, -0.15, -0.233, 0.972, -0.035, 0, 1], [0.455, -0.0316, 0.1, -0.332, 0.943, 0.013, 0, 1], [0.455, -0.0318, 0.225, -0.362, 0.932, -0.02, 0, 1], [0.455, -0.0316, 0.35, -0.336, 0.942, 0.001, 0, 1], [0.455, -0.0317, 0.475, -0.343, 0.918, 0.197, 0, 1], [0.455, -0.0324, 0.6, -0.33, 0.944, 0.002, 0, 1]];
+  P.forEach(([x,y,z,nx,ny,nz,ax,az])=>{
+    const n=new THREE.Vector3(nx,ny,nz).normalize(), xA=new THREE.Vector3(ax,0,az), zA=new THREE.Vector3().crossVectors(xA,n).normalize(); xA.crossVectors(n,zA).normalize();
+    const pan=new THREE.Mesh(new THREE.BoxGeometry(0.112,0.006,0.085),pm); pan.position.set(x,y,z).addScaledVector(n,0.01);
+    pan.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(xA,n,zA)); pan.castShadow=true; pan.userData.glow=0x0c1a33; root.add(pan); panels.push(pan);
+  });
+}});
 // Chevron wings: open toward the gate like rank stripes
 function wing(id,cx,cz,len,dep,h,theta,color){
   const g=new THREE.Group(); g.position.set(cx,0,cz); g.rotation.y=theta;
